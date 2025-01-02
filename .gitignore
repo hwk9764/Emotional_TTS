@@ -1,0 +1,10 @@
+log/
+ckpt/
+eval/
+results/
+transforemres/__pycache__/
+vocoder/
+text/__pycache__/
+data/__pycache__/
+audio/__pycache__/
+__pycache__/
