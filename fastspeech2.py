@@ -40,7 +40,8 @@ class FastSpeech2(nn.Module):
         # 이 padding에 attention하면 바람직한 결과가 나오지 않을 것이기 때문에 이 padding에 masking을 하는 것이 source masking이다.
         # 좀 더 정확히는 softmax 때 문제가 발생하므로 pad token과 attention은 할 수 있지만 softmax에서 영향을 발휘하지 않게 하기 위해 softmax 직전에 masking을 함.
         style_embed = self.gst(ref_mels)  # [N, 256]
-        style_embed = style_embed.expand_as(encoder_output)
+        #style_embed = style_embed.expand_as(encoder_output)    # expand나 expand_as나 똑같은데 코드의 유연성과 재사용성을 위해 expand가 더 적합하다고 함.
+        style_embed = style_embed.expand(-1, encoder_output.size(1), -1)
         encoder_output = encoder_output + style_embed
 
         # train
