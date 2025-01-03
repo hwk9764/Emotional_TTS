@@ -45,7 +45,8 @@ class VarianceAdaptor(nn.Module):
         else:
             energy_prediction = utils.de_norm(energy_prediction, mean=energy_stat[0], std=energy_stat[1]) * dur_pitch_energy_aug[2]
             energy_prediction = utils.standard_norm_torch(energy_prediction, mean=energy_stat[0], std=energy_stat[1])
-            energy_embedding = self.energy_embedding_producer(energy_prediction.unsqueeze(2))   
+            energy_embedding = self.energy_embedding_producer(energy_prediction.unsqueeze(2))
+
         x = x + pitch_embedding + energy_embedding
 
         if duration_target is not None:

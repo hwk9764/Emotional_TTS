@@ -83,7 +83,7 @@ weight_decay = 0.
 # Vocoder
 vocoder = 'vocgan'
 vocoder_pretrained_model_name = "vocgan_kss_pretrained_model_epoch_4500(1).pt"
-vocoder_pretrained_model_path = "/content/drive/MyDrive/Emotional_TTS/vocoder/pretrained_models/vocgan_kss_pretrained_model_epoch_4500(1).pt"
+vocoder_pretrained_model_path = "vocoder/pretrained_models/vocgan_kss_pretrained_model_epoch_4500(1).pt"
 
 # Log-scaled duration
 log_offset = 1.

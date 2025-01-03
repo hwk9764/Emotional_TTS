@@ -45,7 +45,7 @@ def evaluate(model, step, vocoder=None):
     loader = DataLoader(dataset, batch_size=hp.batch_size**2, shuffle=False, collate_fn=dataset.collate_fn, drop_last=False, num_workers=0, )
 
 
-    ref_path = "/content/drive/MyDrive/kss-Korean-FastSpeech2-Pytorch/ref_wav/0040_G1A4E3S4C0_JMH_001952.wav"
+    ref_path = "ref_wav/0040_G1A4E3S4C0_JMH_001952.wav"
     wav, _ = librosa.load(ref_path)
 
     mel_spectrogram, _ = Audio.tools.get_mel_from_wav(torch.FloatTensor(wav))

@@ -218,10 +218,10 @@ def de_norm(x, mean, std):
 
 def _is_outlier(x, p25, p75):
     """Check if value is an outlier."""
-    lower = p25 - 1.5 * (p75 - p25)
-    upper = p75 + 1.5 * (p75 - p25)
+    lower = p25 - 1.5 * (p75 - p25) # 하단 수염(whisker)
+    upper = p75 + 1.5 * (p75 - p25) # 상단 수염
 
-    return np.logical_or(x <= lower, x >= upper)
+    return np.logical_or(x <= lower, x >= upper)    # outlier인지(False) 정상값인지(True) boolean list를 만듦
 
 
 def remove_outlier(x):
@@ -231,11 +231,13 @@ def remove_outlier(x):
     p25 = np.percentile(non_zeros, 25)
     p75 = np.percentile(non_zeros, 75)
 
-    lower = p25 - 1.5 * (p75 - p25) # 하단 수염(whisker)
-    upper = p75 + 1.5 * (p75 - p25) # 상단 수염
-    normal_indices = np.logical_and(x > lower, x < upper)   # outlier인지(False) 정상값인지(True) boolean list를 만듦
+    indices_of_outliers = []
+    for ind, value in enumerate(x):
+        if _is_outlier(value, p25, p75):
+            indices_of_outliers.append(ind)
 
-    return x[normal_indices]
+    x[indices_of_outliers] = np.max(x)
+    return x
 
 def average_by_duration(x, durs):
     mel_len = durs.sum()    # 오디오 전체 길이

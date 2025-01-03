@@ -70,7 +70,7 @@ max_seq_len = 3500
 
 # Optimizer
 batch_size = 16
-epochs = 1000
+epochs = 500
 n_warm_up_step = 4000
 grad_clip_thresh = 1.0
 acc_steps = 1
@@ -83,7 +83,7 @@ weight_decay = 0.
 # Vocoder
 vocoder = 'vocgan'
 vocoder_pretrained_model_name = "vocgan_kss_pretrained_model_epoch_4500(1).pt"
-vocoder_pretrained_model_path = "/content/drive/MyDrive/Emotional_TTS/vocoder/pretrained_models/vocgan_kss_pretrained_model_epoch_4500(1).pt"
+vocoder_pretrained_model_path = "vocoder/pretrained_models/vocgan_kss_pretrained_model_epoch_4500(1).pt"
 
 # Log-scaled duration
 log_offset = 1.
@@ -92,6 +92,7 @@ log_offset = 1.
 # Save, log and synthesis
 #save_step = 10000
 save_step = 6400
+eval_step = 1000
 eval_size = 256
 # log_step = 1000
 log_step = 6400

@@ -69,15 +69,12 @@ class Dataset(Dataset):
         Ds = [batch[ind]["D"] for ind in cut_list]
         f0s = [standard_norm(batch[ind]["f0"], self.mean_f0, self.std_f0) for ind in cut_list]
         energies = [standard_norm(batch[ind]["energy"], self.mean_energy, self.std_energy) for ind in cut_list]
-
         for text, D, id_ in zip(texts, Ds, ids):
             if len(text) != len(D):
                 print('the dimension of text and duration should be the same')
-                print(text)
-                print(len(text), len(D))
-                '''print('len(text), len(D) : ', len(text), len(D))
-                print('text: ',sequence_to_text(text))
-                print(id_)'''
+                print(f"{id_}'s text: ",sequence_to_text(text))
+                print('len(text), len(D) : ', len(text), len(D))
+
         length_text = np.array(list())
         for text in texts:
             length_text = np.append(length_text, text.shape[0])

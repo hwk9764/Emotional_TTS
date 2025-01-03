@@ -116,7 +116,6 @@ def main(args):
                 mel_len = torch.from_numpy(data_of_batch["mel_len"]).long().to(device)
                 max_src_len = np.max(data_of_batch["src_len"]).astype(np.int32)
                 max_mel_len = np.max(data_of_batch["mel_len"]).astype(np.int32)
-
                 # mel spectrogram.shape : ()
                 # 맨 처음 frame을 빼고 나머지만 ref_mels로 쓰는 이유는 
                 ref_mels = mel_target[:, 1:, :]
