@@ -71,13 +71,14 @@ max_seq_len = 3500
 # Optimizer
 batch_size = 16
 epochs = 500
-n_warm_up_step = 4000
+n_warm_up_step = 7500 # int(23600/batch_size*epochs**0.05)
 grad_clip_thresh = 1.0
 acc_steps = 1
 learning_rate = 0.001
 betas = (0.9, 0.98)
 eps = 1e-9
-weight_decay = 0.
+weight_decay = 0.01
+early_stop = 5
 
 
 # Vocoder
@@ -91,11 +92,11 @@ log_offset = 1.
 
 # Save, log and synthesis
 #save_step = 10000
-save_step = 6400
-eval_step = 1000
+save_step = 5900    # 데이터 딱 맞춰서 하려고 한 에폭 당 1475 스텝
+eval_step = 2950
 eval_size = 256
 # log_step = 1000
-log_step = 6400
+log_step = 5900
 clear_Time = 20
 restore_step = 0
 synthesize_step = 193500

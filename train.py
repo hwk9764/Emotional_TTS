@@ -90,9 +90,11 @@ def main(args):
     
     # Training
     model = model.train()
+    prev_l = 100    # 이전 validation loss 저장
+    early_stop = 0  # early stop counter
     for epoch in range(hp.epochs):
         # Get Training Loader
-        print('epoch start')
+        print(f'epoch {epoch+1} start')
         # total step은 원래 epochs * len(loader)(=전체 데이터 수/배치사이즈) 이지만
         # 구현한 사람은 checpoint부터 다시 학습을 시작할 때 더 정확한 지점부터 시작하기 위해 batch size를 곱한 것 같음
         #total_step = hp.epochs * len(loader) * hp.batch_size
@@ -196,11 +198,6 @@ def main(args):
                 train_logger.add_scalar('Loss/duration_loss', d_l, current_step)
                 train_logger.add_scalar('Loss/F0_loss', f_l, current_step)
                 train_logger.add_scalar('Loss/energy_loss', e_l, current_step)
-                
-                if current_step % hp.save_step == 0:
-                    torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(
-                    )}, os.path.join(checkpoint_path, 'checkpoint_{}.pth.tar'.format(current_step)))
-                    print("save model at step {} ...".format(current_step))
 
                 if current_step % hp.eval_step == 0:
                     model.eval()
@@ -214,6 +211,19 @@ def main(args):
                         val_logger.add_scalar('Loss/duration_loss', d_l, current_step)
                         val_logger.add_scalar('Loss/F0_loss', f_l, current_step)
                         val_logger.add_scalar('Loss/energy_loss', e_l, current_step)
+                
+                    # early stop
+                    if prev_l < t_l:
+                        early_stop += 1
+                        if early_stop == hp.early_stop:
+                            print("Early Stop!")
+                            return
+                            
+                if current_step % hp.save_step == 0 and t_l < prev_l:   # 이전보다 val loss가 낮을 때만 저장
+                    torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(
+                    )}, os.path.join(checkpoint_path, 'checkpoint_{}.pth.tar'.format(current_step)))
+                    print("save model at step {} ...".format(current_step))
+                    prev_l = t_l
 
                     model.train()
 
