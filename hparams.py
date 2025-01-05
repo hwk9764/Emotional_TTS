@@ -56,8 +56,8 @@ decoder_head = 2
 decoder_hidden = 256    # decoder input의 embedding 사이즈
 fft_conv1d_filter_size = 1024
 fft_conv1d_kernel_size = (9, 1)
-encoder_dropout = 0.2
-decoder_dropout = 0.2
+encoder_dropout = 0.1
+decoder_dropout = 0.1
 
 variance_predictor_filter_size = 256
 variance_predictor_kernel_size = 3

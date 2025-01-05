@@ -37,6 +37,7 @@ def build_from_path(in_dir, out_dir, meta):
                 continue
             else:
                 info, n = ret
+            # KSS에선 train, val 나뉘어있지 않아서 여기서 나눔
             if basename[0] == '1':
                 val.append(info)
             else:
@@ -85,10 +86,10 @@ def process_utterance(in_dir, out_dir, basename, scalers):
 
     # Compute fundamental frequency
     #f0, _ = pw.dio(wav.astype(np.float64), hp.sampling_rate, frame_period=hp.hop_length/hp.sampling_rate*1000)
-    f0, _ = pw.dio(wav.astype(np.float64), hp.sampling_rate, frame_period=hp.hop_length/hp.sampling_rate*1000)
+    f0, t = pw.dio(wav.astype(np.float64), hp.sampling_rate, frame_period=hp.hop_length/hp.sampling_rate*1000)
     f0 = f0[:sum(duration)]
+    
     # Compute mel-scale spectrogram and energy
-
     mel_spectrogram, energy = Audio.tools.get_mel_from_wav(torch.FloatTensor(wav))
     mel_spectrogram = mel_spectrogram.numpy().astype(np.float32)[:, :sum(duration)]
     energy = energy.numpy().astype(np.float32)[:sum(duration)]

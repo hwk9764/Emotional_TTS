@@ -16,7 +16,7 @@ import text
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def get_alignment(tier):
+def get_alignment(tier):    # wav의 말의 시작과 끝을 찾아 return
     sil_phones = ['sil', 'sp', 'spn']
 
     phones = []
@@ -29,11 +29,11 @@ def get_alignment(tier):
 
         # Trimming leading silences
         if phones == []:
-            if p in sil_phones:
+            if p in sil_phones: # 맨 처음부터 쭉 보면서 silence면 sil_phones에 담음
                 continue
-            else:
+            else:   # 묵음이 아닌 소리가 나왔을 때 여기가 시작임을 명시
                 start_time = s
-        if p not in sil_phones:
+        if p not in sil_phones: # 시작 시간부터 끝 시간까지 묵음이 아닌 소리를 phones에 담음
             phones.append(p)
             end_time = e
             end_idx = len(phones)
@@ -41,7 +41,7 @@ def get_alignment(tier):
             phones.append(p)
         durations.append(int(e*hp.sampling_rate/hp.hop_length)-int(s*hp.sampling_rate/hp.hop_length))
 
-    # Trimming tailing silences
+    # Trimming tailing silences (맨 뒤 쪽에 존재하는 묵음을 제거)
     phones = phones[:end_idx]
     durations = durations[:end_idx]
     
@@ -201,12 +201,10 @@ def standard_norm(x, mean, std, is_mel=False):
     return x
 
 def standard_norm_torch(x, mean, std):
-
     zero_idxs = torch.where(x == 0.0)[0]
     x = (x - mean) / std
     x[zero_idxs] = 0.0
     return x
-
 
 
 def de_norm(x, mean, std):
@@ -216,27 +214,23 @@ def de_norm(x, mean, std):
     return x
 
 
-def _is_outlier(x, p25, p75):
+def _is_outlier(x, lower, upper):
     """Check if value is an outlier."""
-    lower = p25 - 1.5 * (p75 - p25) # 하단 수염(whisker)
-    upper = p75 + 1.5 * (p75 - p25) # 상단 수염
-
-    return np.logical_or(x <= lower, x >= upper)    # outlier인지(False) 정상값인지(True) boolean list를 만듦
+    return np.logical_or(x < lower, x > upper)    # outlier인지(False) 정상값인지(True) boolean list를 만듦
 
 
 def remove_outlier(x):
     """Remove outlier from x.
     IQR로 이상치를 구별"""
+    # 무성음/묵음 구간의 값이 0으로 표현되는데 IQR을 하게 되면 이 부분에 값이 생겨버려서 좋지 않은 영향을 끼칠 수 있음
+    # non-zero 값에 대해서만 IQR을 구하고 clipping
     non_zeros = x[x!=0]
     p25 = np.percentile(non_zeros, 25)
     p75 = np.percentile(non_zeros, 75)
+    lower = p25 - 1.5 * (p75 - p25) # 하단 수염(whisker)
+    upper = p75 + 1.5 * (p75 - p25) # 상단 수염
 
-    indices_of_outliers = []
-    for ind, value in enumerate(x):
-        if _is_outlier(value, p25, p75):
-            indices_of_outliers.append(ind)
-
-    x[indices_of_outliers] = np.max(x)
+    x[x!=0] = np.clip(x[x!=0], lower, upper)  # x를 lower와 upper 사이의 값으로 제한 (0값 빼고)
     return x
 
 def average_by_duration(x, durs):
