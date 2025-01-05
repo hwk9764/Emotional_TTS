@@ -80,6 +80,11 @@ def process_utterance(in_dir, out_dir, tg_dir, subfolder, basename, scalers, is_
         os.system("ffmpeg -i {} -ac 1 -ar 22050 {}".format(wav_bak_path, wav_path))
         
     # Get alignments
+    '''
+    duration은 각 phoneme이 (발음이) 얼마나 지속되는지를 나타내고 있음
+    [8  9  4  1 11 ...] 이런 duration이 있다고 할 때
+    첫 번째 phone은 8 frame동안, 두 번째 frame은 그 후 9 frame동안 지속된다는 뜻
+    '''
     textgrid = tgt.io.read_textgrid(tg_path)
     phone, duration, start, end = get_alignment(textgrid.get_tier_by_name('phones'))
     text = '{'+ '}{'.join(phone) + '}' # '{A}{B}{$}{C}', $ represents silent phones

@@ -85,14 +85,14 @@ def plot_data(data, titles=None, filename=None):
         axes[i][0].set_anchor('W')
         
         ax1 = add_axis(fig, axes[i][0])
-        ax1.plot(pitch, color='tomato')
+        ax1.plot(expand_by_duration(pitch), color='tomato')
         ax1.set_xlim(0, spectrogram.shape[1])
         ax1.set_ylim(0, hp.f0_max)
         ax1.set_ylabel('F0', color='tomato')
         ax1.tick_params(labelsize='x-small', colors='tomato', bottom=False, labelbottom=False)
         
         ax2 = add_axis(fig, axes[i][0], 1.2)
-        ax2.plot(energy, color='darkviolet')
+        ax2.plot(expand_by_duration(energy), color='darkviolet')
         ax2.set_xlim(0, spectrogram.shape[1])
         ax2.set_ylim(hp.energy_min, hp.energy_max)
         ax2.set_ylabel('Energy', color='darkviolet')
@@ -238,18 +238,36 @@ def remove_outlier(x):
 
 def average_by_duration(x, durs):
     '''
-    duration은 각 phoneme이 (발음이) 얼마나 지속되는지를 나타내고 있음
-    [8  9  4  1 11 ...] 이런 duration이 있다고 할 때
-    첫 번째 phone은 8 frame동안, 두 번째 frame은 그 후 9 frame동안 지속된다는 뜻
+    이 코드는 각 문자에 대응되는 f0와 energy 값을 구하는 코드. TTS에서는 모델이 각 문자가 어떻게 소리되는지를 학습해야 함
+    하지만 초기 f0나 energy 값들은 frame 단위로 존재하기 때문에 보다 자연스러운 소리를 학습할 수 있겠지만 각 글자가 어떻게 발음되는지 학습하기 어려울 수 있음
+    그래서 이 코드에서 각 글자별로 f0, energy를 하나의 값으로 frame들의 값들을 통일시키는 것.
     '''
     mel_len = durs.sum()    # 오디오 전체 길이
     durs_cum = np.cumsum(np.pad(durs, (1, 0)))  # np.pad : durs의 왼쪽으로 1개, 오른쪽으로 0개 padding을 추가한다
     # np.cumsum : cumulative sum을 함. a라는 배열이 있고 b=np.cumsum(a)면 b_i = a_{i-1} + a_i
 
     # calculate charactor f0/energy
-    x_char = np.zeros((sum(durs),), dtype=np.float32)
+    # x_char : 문자 별 f0/energy 값
+    x_char = np.zeros((durs.shape[0],), dtype=np.float32)
     for idx, start, end in zip(range(mel_len), durs_cum[:-1], durs_cum[1:]):
         values = x[start:end][np.where(x[start:end] != 0.0)[0]]
         x_char[idx] = np.mean(values) if len(values) > 0 else 0.0  # np.mean([]) = nan.
 
     return x_char.astype(np.float32)
+
+def expand_by_duration(x_char, durs):
+    """
+    오로지 시각화를 위한 메소드
+    문자 단위의 값을 프레임 단위로 확장
+    x_char: 문자별 값 (f0 또는 energy)
+    durs: 각 문자의 지속 시간(프레임 수)
+    """
+    mel_len = durs.sum()
+    x_frame = np.zeros((mel_len,), dtype=np.float32)
+    
+    current_idx = 0
+    for char_idx, dur in enumerate(durs):
+        x_frame[current_idx:current_idx + dur] = x_char[char_idx]
+        current_idx += dur
+        
+    return x_frame
