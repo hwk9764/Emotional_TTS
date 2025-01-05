@@ -67,15 +67,16 @@ def build_from_path(in_dir, out_dir, tg_dir, train_meta, val_meta):
 
 def process_utterance(in_dir, out_dir, tg_dir, subfolder, basename, scalers, is_valid=False):
     basename=basename.replace('.wav','')
-    #wav_bak_path = os.path.join(in_dir, "wavs_bak", "{}.wav".format(wav_bak_basename))
     wav_path = os.path.join(in_dir, subfolder, '{}.wav'.format(basename))
-    #tg_path = os.path.join(in_dir, subfolder, '{}.TextGrid'.format(basename))
+    wav_bak_path = os.path.join(in_dir, "wavs_bak", subfolder, "{}.wav".format(basename))
     tg_path = os.path.join(tg_dir, subfolder, '{}.TextGrid'.format(basename))
     if not os.path.exists(tg_path):
+        print(f"'{tg_path}' does not exist")
         return None
     
     # Convert kss data into PCM encoded wavs
     if not os.path.isfile(wav_path):
+        # 중괄호 두 개 같은 경로로 해도 되는데 덮어쓴다길래 혹시나 해서 bak 씀
         os.system("ffmpeg -i {} -ac 1 -ar 22050 {}".format(wav_bak_path, wav_path))
         
     # Get alignments

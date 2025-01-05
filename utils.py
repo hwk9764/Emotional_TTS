@@ -39,6 +39,9 @@ def get_alignment(tier):    # wav의 말의 시작과 끝을 찾아 return
             end_idx = len(phones)
         else:
             phones.append(p)
+        # e*sampling_rate/hop_length, s*sampling_rate/hop_length는 stft의 frame index를 나타냄
+        # 각 phone이 몇 번째 frame부터 몇 번째 frame까지 지속되는지를 duration에 저장
+        # frame 간격이 hop_length이기 때문에 전체 sample 수를 hop_length로 나누면 frame 수가 됨 (이해 안되면 그림 그려서 생각해보기)
         durations.append(int(e*hp.sampling_rate/hp.hop_length)-int(s*hp.sampling_rate/hp.hop_length))
 
     # Trimming tailing silences (맨 뒤 쪽에 존재하는 묵음을 제거)
@@ -234,15 +237,19 @@ def remove_outlier(x):
     return x
 
 def average_by_duration(x, durs):
+    '''
+    duration은 각 phoneme이 (발음이) 얼마나 지속되는지를 나타내고 있음
+    [8  9  4  1 11 ...] 이런 duration이 있다고 할 때
+    첫 번째 phone은 8 frame동안, 두 번째 frame은 그 후 9 frame동안 지속된다는 뜻
+    '''
     mel_len = durs.sum()    # 오디오 전체 길이
     durs_cum = np.cumsum(np.pad(durs, (1, 0)))  # np.pad : durs의 왼쪽으로 1개, 오른쪽으로 0개 padding을 추가한다
     # np.cumsum : cumulative sum을 함. a라는 배열이 있고 b=np.cumsum(a)면 b_i = a_{i-1} + a_i
 
     # calculate charactor f0/energy
-    x_char = np.zeros((durs.shape[0],), dtype=np.float32)
+    x_char = np.zeros((sum(durs),), dtype=np.float32)
     for idx, start, end in zip(range(mel_len), durs_cum[:-1], durs_cum[1:]):
         values = x[start:end][np.where(x[start:end] != 0.0)[0]]
         x_char[idx] = np.mean(values) if len(values) > 0 else 0.0  # np.mean([]) = nan.
 
     return x_char.astype(np.float32)
-

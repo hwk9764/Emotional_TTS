@@ -123,8 +123,6 @@ def evaluate(model, step, vocoder=None):
                             utils.vocgan_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.eval_path, 'eval_step_{}_{}_{}.wav'.format(step, basename, hp.vocoder)))  
                         np.save(os.path.join(hp.eval_path, 'eval_step_{}_{}_mel.npy'.format(step, basename)), mel_postnet.numpy())
                         
-                        print(f'truncate 전 f0 : {f0.size()}, energy : {energy.size()}')
-                        print('gt_length : ', gt_length)
                         f0_ = f0[k, :gt_length]
                         energy_ = energy[k, :gt_length]
                         f0_output_ = f0_output[k, :out_length]
@@ -135,7 +133,6 @@ def evaluate(model, step, vocoder=None):
                         energy_ = utils.de_norm(energy_, mean_energy, std_energy).detach().cpu().numpy()
                         energy_output_ = utils.de_norm(energy_output_, mean_energy, std_energy).detach().cpu().numpy()
 
-                        print(f'eval 검사 / mel_postnet : {mel_postnet.shape}, mel_target : {mel_target_.shape}, f0 : {f0_.shape}, f0_output : {f0_output_.shape}, energy : {energy_.shape}, energy_output : {energy_output_.shape}')
                         utils.plot_data([(mel_postnet.numpy(), f0_output_, energy_output_), (mel_target_.numpy(), f0_, energy_)], 
                             ['Synthesized Spectrogram', 'Ground-Truth Spectrogram'], filename=os.path.join(hp.eval_path, 'eval_step_{}_{}.png'.format(step, basename)))
                         idx += 1

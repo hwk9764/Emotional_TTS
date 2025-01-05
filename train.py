@@ -121,7 +121,6 @@ def main(args):
                 # mel spectrogram.shape : ()
                 # 맨 처음 frame을 빼고 나머지만 ref_mels로 쓰는 이유는 
                 ref_mels = mel_target[:, 1:, :]
-                
                 # Forward
                 mel_output, mel_postnet_output, log_duration_output, f0_output, energy_output, src_mask, mel_mask, _ = model(
                     text, src_len, ref_mels, mel_len, D, f0, energy, max_src_len, max_mel_len)
