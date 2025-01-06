@@ -109,7 +109,7 @@ def main(args):
                 
                 # Get Data
                 text = torch.from_numpy(data_of_batch["text"]).long().to(device)
-                mel_target = torch.from_numpy(data_of_batch["mel_target"]).float().to(device)
+                mel_target = torch.from_numpy(data_of_batch["mel_target"]).float().to(device)   # mel spectrogram.shape : (batch_size, num_frames, mel_bin)
                 D = torch.from_numpy(data_of_batch["D"]).long().to(device)  # => duration
                 log_D = torch.from_numpy(data_of_batch["log_D"]).float().to(device)
                 f0 = torch.from_numpy(data_of_batch["f0"]).float().to(device)
@@ -118,22 +118,15 @@ def main(args):
                 mel_len = torch.from_numpy(data_of_batch["mel_len"]).long().to(device)
                 max_src_len = np.max(data_of_batch["src_len"]).astype(np.int32)
                 max_mel_len = np.max(data_of_batch["mel_len"]).astype(np.int32)
-                # mel spectrogram.shape : ()
-                # 맨 처음 frame을 빼고 나머지만 ref_mels로 쓰는 이유는 
-                ref_mels = mel_target[:, 1:, :]
+                
                 # Forward
                 mel_output, mel_postnet_output, log_duration_output, f0_output, energy_output, src_mask, mel_mask, _ = model(
-                    text, src_len, ref_mels, mel_len, D, f0, energy, max_src_len, max_mel_len)
-
-                # debug 위한 print
-                # if current_step % 10 == 0:
-                #     print(f"current_step = {current_step}, i = {i}")
+                    text, src_len, mel_target, mel_len, D, f0, energy, max_src_len, max_mel_len)
                 
                 # Cal Loss
                 mel_loss, mel_postnet_loss, d_loss, f_loss, e_loss = Loss(
                         log_duration_output, log_D, f0_output, f0, energy_output, energy, mel_output, mel_postnet_output, mel_target, ~src_mask, ~mel_mask)
                 total_loss = mel_loss + mel_postnet_loss + d_loss + f_loss + e_loss
-
                  
                 # Logger
                 t_l = total_loss.item()

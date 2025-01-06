@@ -242,7 +242,7 @@ def remove_outlier(x):
 
 def average_by_duration(x, durs):
     '''
-    이 코드는 각 문자에 대응되는 f0와 energy 값을 구하는 코드. TTS에서는 모델이 각 문자가 어떻게 소리되는지를 학습해야 함
+    이 코드는 각 phoneme에 대응되는 f0와 energy 값을 구하는 코드. TTS에서는 모델이 각 phoneme이 어떻게 소리되는지를 학습해야 함
     하지만 초기 f0나 energy 값들은 frame 단위로 존재하기 때문에 보다 자연스러운 소리를 학습할 수 있겠지만 각 글자가 어떻게 발음되는지 학습하기 어려울 수 있음
     그래서 이 코드에서 각 글자별로 f0, energy를 하나의 값으로 frame들의 값들을 통일시키는 것.
     '''

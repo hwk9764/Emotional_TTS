@@ -98,12 +98,6 @@ def process_utterance(in_dir, out_dir, tg_dir, subfolder, basename, scalers, is_
     # Read and trim wav files
     sr, wav = read(wav_path)
                 
-    '''if sr != hp.sampling_rate:
-        y, sr = librosa.load(wav_path, sr=sr)
-        wav = librosa.resample(y=y, orig_sr=sr, target_sr=hp.sampling_rate)
-        sf.write(wav_path, wav.astype(np.float32), hp.sampling_rate)
-        sr, wav = read(wav_path)'''
-        
     wav = wav[int(hp.sampling_rate*start):int(hp.sampling_rate*end)]#.astype(np.float32)
     #wav = np.asarray(wav, dtype="float32")
     #wav = wav.astype(np.float32)
@@ -120,18 +114,6 @@ def process_utterance(in_dir, out_dir, tg_dir, subfolder, basename, scalers, is_
     mel_spectrogram = mel_spectrogram.numpy().astype(np.float32)[:, :sum(duration)]
     energy = energy.numpy().astype(np.float32)[:sum(duration)]
 
-    '''
-    f0, energy = remove_outlier(f0), remove_outlier(energy)
-    # 0이 대부분을 차지하는 pitch contour나 energy는 값이 있는 부분을 전부 이상치로 간주하고 0으로 고쳐서 결국 pitch가 전혀 없는 contour가 됨.
-    => non-zero값만 뽑아서 이상치를 처리하도록 바꿔서 괜찮
-    # 감정을 표현하는데 중요한 info인만큼 이상치 처리를 하지 않기로 함. => 미친 놈아 그러면 안돼
-    # StandardScaler는 outlier에 민감하여 같은 분포여도 outlier때문에 다르게 표준화될 수 있음. 그래서 outlier 없애는 것.
-    
-    이하 무시해도 됨
-    f0, energy = average_by_duration(f0, duration), average_by_duration(energy, duration)
-    # 비유하자면 아날로그 신호를 quantization해서 디지털로 바꾸는 과정. 일정 구간들의 모든 값을 하나의 값으로 일직선을 그어버림 -> 정보의 해상도가 떨어짐.
-    # 이런 짓을 왜 하는지 모르겠음 => 양자화하는거지 뭐뭐
-    '''
     f0, energy = remove_outlier(f0), remove_outlier(energy)
     f0, energy = average_by_duration(f0, duration), average_by_duration(energy, duration)
         
@@ -168,14 +150,13 @@ def process_utterance(in_dir, out_dir, tg_dir, subfolder, basename, scalers, is_
    
     if not is_valid:    # train set에만 fit해 있어야 모델의 성능이 더 좋다고 함. valid도 하면 data leakage 발생
         mel_scaler, f0_scaler, energy_scaler = scalers
-
         mel_scaler.partial_fit(mel_spectrogram.T)
-    
-    
+
+        '''# 데이터 이상 유무 확인
         if sum(f0) == 0:
             print('f0 왜 이럼? ', basename)
         if sum(energy) == 0:
-            print('energy 왜 이럼? ',basename)
+            print('energy 왜 이럼? ',basename)'''
         f0_scaler.partial_fit(f0[f0!=0].reshape(-1, 1))
         energy_scaler.partial_fit(energy[energy != 0].reshape(-1, 1))
 
