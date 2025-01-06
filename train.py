@@ -164,11 +164,12 @@ def main(args):
 
                 # Clipping gradients to avoid gradient explosion
                 nn.utils.clip_grad_norm_(model.parameters(), hp.grad_clip_thresh)
-
-                # Update weights
-                scheduled_optim.step_and_update_lr()
-                scheduled_optim.zero_grad()
-
+                
+                # gradient accumulation
+                if ((j+1) % hp.accumulate_steps==0) or (j+1 == len(batchs)):    # 후자 조건은 맨 마지막 배치가 acc_step보다 작을 때도 업데이트하기 위함 
+                    # Update weights
+                    scheduled_optim.step_and_update_lr()
+                    scheduled_optim.zero_grad()
                 
                 # Print
                 if current_step % hp.log_step == 0:

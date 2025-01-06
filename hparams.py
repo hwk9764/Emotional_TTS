@@ -70,16 +70,16 @@ max_seq_len = 3500
 
 # Optimizer
 batch_size = 16
-epochs = 500
-n_warm_up_step = 7500 # int(23600/batch_size*epochs**0.05)
+accumulate_steps = 3 # 16 * 3 -> fastspeech2 논문과 동일
+epochs = 1000
+n_warm_up_step = int(23600/batch_size*accumulate_steps*epochs*0.05) # 데이터 수에 따라 조절
 grad_clip_thresh = 1.0
 acc_steps = 1
 learning_rate = 0.001
 betas = (0.9, 0.98)
 eps = 1e-9
 weight_decay = 0.01
-early_stop = 5
-
+early_stop = 50
 
 # Vocoder
 vocoder = 'vocgan'

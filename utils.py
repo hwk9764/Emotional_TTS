@@ -65,7 +65,11 @@ def get_param_num(model):
     num_param = sum(param.numel() for param in model.parameters())
     return num_param
 
-def plot_data(data, titles=None, filename=None):
+def plot_data(data, durs, titles=None, filename=None):
+    '''
+    data: [(예측 spectrogram, f0, energy), (target spectrogram, f0, energy)]
+    durs: duration 정보 [batch_size, duration 최대 길이 (padding된 친구들도 껴 있음)]
+    '''
     fig, axes = plt.subplots(len(data), 1, squeeze=False)
     if titles is None:
         titles = [None for i in range(len(data))]
@@ -74,7 +78,7 @@ def plot_data(data, titles=None, filename=None):
         ax = fig.add_axes(old_ax.get_position(), anchor='W')
         ax.set_facecolor("None")
         return ax
-
+    
     for i in range(len(data)):
         spectrogram, pitch, energy = data[i]
         axes[i][0].imshow(spectrogram, origin='lower')
@@ -85,14 +89,14 @@ def plot_data(data, titles=None, filename=None):
         axes[i][0].set_anchor('W')
         
         ax1 = add_axis(fig, axes[i][0])
-        ax1.plot(expand_by_duration(pitch), color='tomato')
+        ax1.plot(expand_by_duration(pitch, durs), color='tomato')
         ax1.set_xlim(0, spectrogram.shape[1])
         ax1.set_ylim(0, hp.f0_max)
         ax1.set_ylabel('F0', color='tomato')
         ax1.tick_params(labelsize='x-small', colors='tomato', bottom=False, labelbottom=False)
         
         ax2 = add_axis(fig, axes[i][0], 1.2)
-        ax2.plot(expand_by_duration(energy), color='darkviolet')
+        ax2.plot(expand_by_duration(energy, durs), color='darkviolet')
         ax2.set_xlim(0, spectrogram.shape[1])
         ax2.set_ylim(hp.energy_min, hp.energy_max)
         ax2.set_ylabel('Energy', color='darkviolet')
@@ -262,12 +266,12 @@ def expand_by_duration(x_char, durs):
     x_char: 문자별 값 (f0 또는 energy)
     durs: 각 문자의 지속 시간(프레임 수)
     """
-    mel_len = durs.sum()
-    x_frame = np.zeros((mel_len,), dtype=np.float32)
-    
+    mel_len = sum(durs)
+    x_frame = np.zeros(mel_len, dtype=np.float32)
     current_idx = 0
     for char_idx, dur in enumerate(durs):
+        if dur==0: break
         x_frame[current_idx:current_idx + dur] = x_char[char_idx]
         current_idx += dur
-        
+    
     return x_frame
