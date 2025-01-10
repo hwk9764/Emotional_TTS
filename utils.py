@@ -114,7 +114,6 @@ def get_mask_from_lengths(lengths, max_len=None):
     ids = torch.arange(0, max_len).unsqueeze(0).expand(batch_size, -1).to(device)
 
     mask = (ids >= lengths.unsqueeze(1).expand(-1, max_len))
-
     return mask
 
 def get_vocgan(ckpt_path, n_mel_channels=hp.n_mel_channels, generator_ratio = [4, 4, 2, 2, 2, 2], n_residual_layers=4, mult=256, out_channels=1):

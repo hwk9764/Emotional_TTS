@@ -30,7 +30,6 @@ class FastSpeech2(nn.Module):
         self.gst = GST()
 
     def forward(self, src_seq, src_len, ref_mels, mel_len=None, d_target=None, p_target=None, e_target=None, max_src_len=None, max_mel_len=None, dur_pitch_energy_aug=None, f0_stat=None, energy_stat=None):
-
         src_mask = get_mask_from_lengths(src_len, max_src_len)  # padding을 가리는 masking
         mel_mask = get_mask_from_lengths(mel_len, max_mel_len) if mel_len is not None else None # 미래 mel token을 가리는 masking
         
@@ -43,6 +42,7 @@ class FastSpeech2(nn.Module):
         #style_embed = style_embed.expand_as(encoder_output)    # expand나 expand_as나 똑같은데 코드의 유연성과 재사용성을 위해 expand가 더 적합하다고 함.
         style_embed = style_embed.expand(-1, encoder_output.size(1), -1)
         encoder_output = encoder_output + style_embed
+        
         # train
         if d_target is not None:
             variance_adaptor_output, d_prediction, p_prediction, e_prediction, _, _ = self.variance_adaptor(

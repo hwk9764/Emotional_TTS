@@ -116,7 +116,7 @@ class VariancePredictor(nn.Module):
             ("conv1d_2", Conv(self.filter_size,
                               self.filter_size,
                               kernel_size=self.kernel,
-                              padding=1)),
+                              padding=(self.kernel-1)//2)),
             ("relu_2", nn.ReLU()),
             ("layer_norm_2", nn.LayerNorm(self.filter_size)),
             ("dropout_2", nn.Dropout(self.dropout))
@@ -128,7 +128,6 @@ class VariancePredictor(nn.Module):
         out = self.conv_layer(encoder_output)
         out = self.linear_layer(out)
         out = out.squeeze(-1)
-        
         if mask is not None:
             out = out.masked_fill(mask, 0.)
         
