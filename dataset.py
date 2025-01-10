@@ -36,6 +36,7 @@ class Dataset(Dataset):
         basename=self.basename[idx]
         subfolder = basename[-7:-5]
         phone = np.array(text_to_sequence(t, []))
+        if phone[0]>hparams.max_seq_len: print('phone : ', phone.shape)
         try:
             mel_path = os.path.join(
                 hparams.preprocessed_path, "mel", subfolder, "{}-mel-{}.npy".format(hparams.dataset, basename))
@@ -62,7 +63,7 @@ class Dataset(Dataset):
         return sample
 
 
-    def reprocess(self, batch, cut_list):
+    '''def reprocess(self, batch, cut_list):
         ids = [batch[ind]["id"] for ind in cut_list]
         texts = [batch[ind]["text"] for ind in cut_list]
         mel_targets = [standard_norm(batch[ind]["mel_target"], self.mean_mel, self.std_mel, is_mel=True) for ind in cut_list]
@@ -100,26 +101,48 @@ class Dataset(Dataset):
                "src_len": length_text,
                "mel_len": length_mel}
         
-        return out
-
-    # def collate_fn(self, batch):
-    #     len_arr = np.array([d["text"].shape[0] for d in batch])
-    #     index_arr = np.argsort(-len_arr)
-    #     batchsize = len(batch)
-    #     real_batchsize = int(math.sqrt(batchsize))
-
-    #     cut_list = list()
-    #     for i in range(real_batchsize):
-    #         if self.sort:
-    #             cut_list.append(index_arr[i*real_batchsize:(i+1)*real_batchsize])
-    #         else:
-    #             cut_list.append(np.arange(i*real_batchsize, (i+1)*real_batchsize))
+        return out'''
+    
+    def reprocess(self, batchs):
+        ids = [batch["id"] for batch in batchs]
+        texts = [batch["text"] for batch in batchs]
+        mel_targets = [standard_norm(batch["mel_target"], self.mean_mel, self.std_mel, is_mel=True) for batch in batchs]
+        Ds = [batch["D"] for batch in batchs]
+        f0s = [standard_norm(batch["f0"], self.mean_f0, self.std_f0) for batch in batchs]
+        energies = [standard_norm(batch["energy"], self.mean_energy, self.std_energy) for batch in batchs]
         
-    #     output = list()
-    #     for i in range(real_batchsize):
-    #         output.append(self.reprocess(batch, cut_list[i]))
+        for text, D, id_ in zip(texts, Ds, ids):
+            if len(text) != len(D):
+                print('the dimension of text and duration should be the same')
+                print(f"{id_}'s text: ",sequence_to_text(text))
+                print('len(text), len(D) : ', len(text), len(D))
+        
+        length_text = np.array(list())
+        for text in texts:
+            length_text = np.append(length_text, text.shape[0])
 
-    #     return output
+        length_mel = np.array(list())
+        for mel in mel_targets:
+            length_mel = np.append(length_mel, mel.shape[0])
+            
+        texts = pad_1D(texts)
+        Ds = pad_1D(Ds)
+        mel_targets = pad_2D(mel_targets)
+        f0s = pad_1D(f0s)
+        energies = pad_1D(energies)
+        log_Ds = np.log(Ds + hparams.log_offset)
+
+        out = {"id": ids,
+               "text": texts,
+               "mel_target": mel_targets,
+               "D": Ds,
+               "log_D": log_Ds,
+               "f0": f0s,
+               "energy": energies,
+               "src_len": length_text,
+               "mel_len": length_mel}
+        
+        return out
 
     # data별 길이가 다르므로 길이를 맞춰주고 학습에 필요한 추가 데이터를 반환해줌.
     # batch 단위로 데이터를 불러와 후처리 후 반환
@@ -127,7 +150,7 @@ class Dataset(Dataset):
     # train.py에 DataLoader에서 collate_fn로 쓸 메소드의 이름만 지정해주면, 데이터셋을 생성하면서
     # 알아서 collate_fn에 batch를 입력으로 넣어 후처리함.
     # https://blog.naver.com/johnny9696/222950922052
-    def collate_fn(self, batch):
+    '''def collate_fn(self, batch):
         # Filter out None elements from the batch
         batch = [item for item in batch if item is not None]
         # Check if the batch is empty after filtering
@@ -155,6 +178,17 @@ class Dataset(Dataset):
         for i in range(real_batchsize):
             output.append(self.reprocess(batch, cut_list[i]))
 
+        return output'''
+    
+    
+    def collate_fn(self, batch):
+        # Filter out None elements from the batch
+        batch = [item for item in batch if item is not None]
+        # Check if the batch is empty after filtering
+        if not batch:
+            return []
+
+        output = self.reprocess(batch)
         return output
 
 
@@ -167,10 +201,14 @@ if __name__ == "__main__":
 
     cnt = 0
     for i, batchs in enumerate(training_loader):
-        for j, data_of_batch in enumerate(batchs):
-            mel_target = torch.from_numpy(
-                data_of_batch["mel_target"]).float().to(device)
-            D = torch.from_numpy(data_of_batch["D"]).int().to(device)
-            if mel_target.shape[1] == D.sum().item():
-                cnt += 1
+        # for j, data_of_batch in enumerate(batchs):
+        #     mel_target = torch.from_numpy(
+        #         data_of_batch["mel_target"]).float().to(device)
+        #     D = torch.from_numpy(data_of_batch["D"]).int().to(device)
+        #     if mel_target.shape[1] == D.sum().item():
+        #         cnt += 1
+        mel_target = torch.from_numpy(batchs["mel_target"]).float().to(device)
+        D = torch.from_numpy(batchs["D"]).int().to(device)
+        if mel_target.shape[1] == D.sum().item():
+            cnt += 1
 

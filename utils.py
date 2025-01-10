@@ -91,7 +91,7 @@ def plot_data(data, durs, titles=None, filename=None):
         ax1 = add_axis(fig, axes[i][0])
         ax1.plot(expand_by_duration(pitch, durs), color='tomato')
         ax1.set_xlim(0, spectrogram.shape[1])
-        ax1.set_ylim(0, hp.f0_max)
+        ax1.set_ylim(hp.f0_min, hp.f0_max)
         ax1.set_ylabel('F0', color='tomato')
         ax1.tick_params(labelsize='x-small', colors='tomato', bottom=False, labelbottom=False)
         

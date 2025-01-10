@@ -118,6 +118,7 @@ def process_utterance(in_dir, out_dir, tg_dir, subfolder, basename, scalers, is_
     f0, energy = average_by_duration(f0, duration), average_by_duration(energy, duration)
         
     if mel_spectrogram.shape[1] >= hp.max_seq_len:
+        # 이렇게 아예 누락하는 이유는 wav를 자르면 text도 잘린 부분만큼 처리를 해줘야하는데 그게 어려워서
         return None
     
     # Save alignment

@@ -43,7 +43,6 @@ class FastSpeech2(nn.Module):
         #style_embed = style_embed.expand_as(encoder_output)    # expand나 expand_as나 똑같은데 코드의 유연성과 재사용성을 위해 expand가 더 적합하다고 함.
         style_embed = style_embed.expand(-1, encoder_output.size(1), -1)
         encoder_output = encoder_output + style_embed
-
         # train
         if d_target is not None:
             variance_adaptor_output, d_prediction, p_prediction, e_prediction, _, _ = self.variance_adaptor(
@@ -52,7 +51,6 @@ class FastSpeech2(nn.Module):
         else:
             variance_adaptor_output, d_prediction, p_prediction, e_prediction, mel_len, mel_mask = self.variance_adaptor(
                     encoder_output, src_mask, mel_mask, d_target, p_target, e_target, max_mel_len, dur_pitch_energy_aug, f0_stat, energy_stat)
-
         # Fastspeech2의 decoder는 원래 target input이 들어가지 않고, encoder output과 variance 정보가 합쳐진 input만 들어간다.
         # decoder는 mel-spectrogram을 예측하는 것이기 때문에 mel_mask로 미래 mel값을 가리면서 self-attention을 수행한다. (원래 transformer에서 decoder input에 하는 것과 동일)
         decoder_output = self.decoder(variance_adaptor_output, mel_mask)

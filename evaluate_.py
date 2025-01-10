@@ -44,7 +44,7 @@ def evaluate(model, step, vocoder=None):
 
     # Get dataset
     dataset = Dataset("val.txt", sort=False)
-    loader = DataLoader(dataset, batch_size=hp.batch_size, shuffle=False, collate_fn=dataset.collate_fn, drop_last=False, num_workers=0, )
+    loader = DataLoader(dataset, batch_size=hp.batch_size**2, shuffle=False, collate_fn=dataset.collate_fn, drop_last=False, num_workers=0, )
 
 
     ref_path = "ref_wav/0040_G1A4E3S4C0_JMH_001952.wav"
@@ -66,18 +66,19 @@ def evaluate(model, step, vocoder=None):
     current_step = 0
     idx = 0
     for i, batchs in enumerate(loader):
+        for j, data_of_batch in enumerate(batchs):
             # Get Data
-            id_ = batchs["id"]
-            text = torch.from_numpy(batchs["text"]).long().to(device)
-            mel_target = torch.from_numpy(batchs["mel_target"]).float().to(device)
-            D = torch.from_numpy(batchs["D"]).int().to(device)
-            log_D = torch.from_numpy(batchs["log_D"]).int().to(device)
-            f0 = torch.from_numpy(batchs["f0"]).float().to(device)
-            energy = torch.from_numpy(batchs["energy"]).float().to(device)
-            src_len = torch.from_numpy(batchs["src_len"]).long().to(device)
-            mel_len = torch.from_numpy(batchs["mel_len"]).long().to(device)
-            max_src_len = np.max(batchs["src_len"]).astype(np.int32)
-            max_mel_len = np.max(batchs["mel_len"]).astype(np.int32)
+            id_ = data_of_batch["id"]
+            text = torch.from_numpy(data_of_batch["text"]).long().to(device)
+            mel_target = torch.from_numpy(data_of_batch["mel_target"]).float().to(device)
+            D = torch.from_numpy(data_of_batch["D"]).int().to(device)
+            log_D = torch.from_numpy(data_of_batch["log_D"]).int().to(device)
+            f0 = torch.from_numpy(data_of_batch["f0"]).float().to(device)
+            energy = torch.from_numpy(data_of_batch["energy"]).float().to(device)
+            src_len = torch.from_numpy(data_of_batch["src_len"]).long().to(device)
+            mel_len = torch.from_numpy(data_of_batch["mel_len"]).long().to(device)
+            max_src_len = np.max(data_of_batch["src_len"]).astype(np.int32)
+            max_mel_len = np.max(data_of_batch["mel_len"]).astype(np.int32)
 
             with torch.no_grad():
                 # Forward
@@ -87,6 +88,8 @@ def evaluate(model, step, vocoder=None):
                 # Cal Loss
                 mel_loss, mel_postnet_loss, d_loss, f_loss, e_loss = Loss(
                         log_duration_output, log_D, f0_output, f0, energy_output, energy, mel_output, mel_postnet_output, mel_target, ~src_mask, ~mel_mask)
+
+                total_loss = mel_loss + mel_postnet_loss + d_loss + f_loss + e_loss
                 
                 d_l.append(d_loss.item())
                 f_l.append(f_loss.item())
@@ -110,12 +113,11 @@ def evaluate(model, step, vocoder=None):
                     mel_target_ = utils.de_norm(mel_target_, mean_mel, std_mel).cpu().transpose(0, 1).detach()
                     mel_postnet_torch = utils.de_norm(mel_postnet_torch, mean_mel, std_mel).transpose(1, 2).detach()
                     mel_postnet = utils.de_norm(mel_postnet, mean_mel, std_mel).cpu().transpose(0, 1).detach()
-                    
-                    date_format = f'{datetime.now().year}-{datetime.now().month}-{datetime.now().day}-{datetime.now().hour}-{datetime.now().minute}'
+
                     if hp.vocoder == "vocgan":
-                        utils.vocgan_infer(mel_target_torch, vocoder, path=os.path.join(hp.eval_path, '{}_eval_groundtruth_{}_{}.wav'.format(date_format, basename, hp.vocoder)))   
-                        utils.vocgan_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.eval_path, '{}_eval_step_{}_{}_{}.wav'.format(date_format, step, basename, hp.vocoder)))  
-                    np.save(os.path.join(hp.eval_path, '{}_eval_step_{}_{}_mel.npy'.format(date_format, step, basename)), mel_postnet.numpy())
+                        utils.vocgan_infer(mel_target_torch, vocoder, path=os.path.join(hp.eval_path, 'eval_groundtruth_{}_{}.wav'.format(basename, hp.vocoder)))   
+                        utils.vocgan_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.eval_path, 'eval_step_{}_{}_{}.wav'.format(step, basename, hp.vocoder)))  
+                    np.save(os.path.join(hp.eval_path, 'eval_step_{}_{}_mel.npy'.format(step, basename)), mel_postnet.numpy())
                     
                     f0_ = f0[0, :gt_length]
                     energy_ = energy[0, :gt_length]
@@ -127,7 +129,7 @@ def evaluate(model, step, vocoder=None):
                     energy_output_ = utils.de_norm(energy_output_, mean_energy, std_energy).detach().cpu().numpy()
                     
                     utils.plot_data([(mel_postnet.numpy(), f0_output_, energy_output_), (mel_target_.numpy(), f0_, energy_)], D[0],
-                        titles=['Synthesized Spectrogram', 'Ground-Truth Spectrogram'], filename=os.path.join(hp.eval_path, '{}_eval_step_{}_{}.png'.format(date_format, step, basename)))
+                        titles=['Synthesized Spectrogram', 'Ground-Truth Spectrogram'], filename=os.path.join(hp.eval_path, f'{datetime.now().year}_{datetime.now().month}_{datetime.now().day}_{datetime.now().hour}_{datetime.now().minute}', 'eval_step_{}_{}.png'.format(step, basename)))
                     idx += 1
                     print("done")
 

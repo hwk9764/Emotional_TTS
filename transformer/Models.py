@@ -59,7 +59,6 @@ class Encoder(nn.Module):
 
         enc_slf_attn_list = []
         batch_size, max_len = src_seq.shape[0], src_seq.shape[1]    # src_seq는 (batch_size, seq_length, embedding_dim)로 이루어져 있음
-        
         # -- Prepare masks
         slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
 
@@ -105,13 +104,11 @@ class Decoder(nn.Module):
             d_model, d_inner, n_head, d_k, d_v, dropout=dropout) for _ in range(n_layers)])
 
     def forward(self, enc_seq, mask, return_attns=False):
-
         dec_slf_attn_list = []
         batch_size, max_len = enc_seq.shape[0], enc_seq.shape[1]
 
         # -- Prepare masks
         slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
-
         # -- Forward
         if not self.training and enc_seq.shape[1] > hp.max_seq_len:
             dec_output = enc_seq + get_sinusoid_encoding_table(enc_seq.shape[1], hp.decoder_hidden)[:enc_seq.shape[1], :].unsqueeze(0).expand(batch_size, -1, -1).to(enc_seq.device)

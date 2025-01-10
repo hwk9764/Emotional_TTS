@@ -103,9 +103,8 @@ def main(args):
         for i, batchs in enumerate(loader):
             for j, data_of_batch in enumerate(batchs):
                 start_time = time.perf_counter()
-
                 # 얘도 원래는 i + epoch*len(loader) + 1이 맞지만 더 정확한 지점을 타겟팅하기 위해 세분화한 것 같음
-                current_step = i*hp.batch_size + j + epoch*len(loader)*hp.batch_size + 1
+                current_step = i * hp.batch_size + j + epoch*len(loader)*hp.batch_size + 1
                 
                 # Get Data
                 text = torch.from_numpy(data_of_batch["text"]).long().to(device)
@@ -149,9 +148,10 @@ def main(args):
                     f_e_loss.write(str(e_l)+"\n")
                  
                 # Backward
-                total_loss = total_loss / hp.acc_steps
+                # accumulate gradients
+                total_loss = total_loss / hp.accumulate_steps
                 total_loss.backward()
-                if current_step % hp.acc_steps != 0:
+                if current_step % hp.accumulate_steps != 0:
                     continue
 
 
@@ -159,7 +159,7 @@ def main(args):
                 nn.utils.clip_grad_norm_(model.parameters(), hp.grad_clip_thresh)
                 
                 # gradient accumulation
-                if ((j+1) % hp.accumulate_steps==0) or (j+1 == len(batchs)):    # 후자 조건은 맨 마지막 배치가 acc_step보다 작을 때도 업데이트하기 위함 
+                if ((j+1) % hp.accumulate_steps==0):    # 후자 조건은 맨 마지막 배치가 acc_step보다 작을 때도 업데이트하기 위함 
                     # Update weights
                     scheduled_optim.step_and_update_lr()
                     scheduled_optim.zero_grad()
