@@ -67,7 +67,7 @@ variance_predictor_dropout = 0.5
 
 # 30초 이상은 자른다고 할 때 mel_spec의 최대 seq_len은 sampling_rate * sec(오디오 길이) / hop_length (frame 간격)
 # 22050 * 30 / 128 ≒ 5168
-# 근데 실제로는 최대 길이가 3500이 넘지 않음. 어떻게 구하는지 모르겠다.
+# 오디오를 자르게 되면 그에 맞춰 label인 text도 잘라야 하는데 이 과정이 귀찮으므로 자르지 않도록 크게 잡는 것이 편함
 max_seq_len = 3500
 
 # Optimizer
@@ -84,11 +84,11 @@ weight_decay = 0.1
 early_stop = 30
 
 # # Loss weight
-# mel_loss_weight = 1.0
-# mel_postnet_loss_weight = 1.0
-# d_loss_weight = 0.8 # 원래 1.0
-# f_loss_weight = 3.5 # 원래 4.0
-# e_loss_weight = 3.5 # 원래 4.0
+mel_loss_weight = 1.0
+mel_postnet_loss_weight = 1.0
+d_loss_weight = 1.0
+f_loss_weight = 1.5
+e_loss_weight = 1.5
 
 # Vocoder
 vocoder = 'vocgan'
