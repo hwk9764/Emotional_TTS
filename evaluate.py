@@ -111,7 +111,12 @@ def evaluate(model, step, vocoder=None):
                     mel_postnet_torch = utils.de_norm(mel_postnet_torch, mean_mel, std_mel).transpose(1, 2).detach()
                     mel_postnet = utils.de_norm(mel_postnet, mean_mel, std_mel).cpu().transpose(0, 1).detach()
                     
-                    date_format = f'{str(datetime.now().year)[-2:]}{datetime.now().month}{datetime.now().day}-{datetime.now().hour}{datetime.now().minute}'
+                    year = str(datetime.now().year)
+                    month = datetime.now().month if datetime.now().month>9 else '0'+str(datetime.now().month)
+                    day = datetime.now().day if datetime.now().day>9 else '0'+str(datetime.now().day)
+                    hour = datetime.now().hour if datetime.now().hour>9 else '0'+str(datetime.now().hour)
+                    minute = datetime.now().minute if datetime.now().minute>9 else '0'+str(datetime.now().minute)
+                    date_format = f'{year}{month}{day}-{hour}{minute}'
                     if hp.vocoder == "vocgan":
                         if not os.path.isfile(os.path.join(hp.eval_path, 'eval_groundtruth_{}_{}.wav'.format(basename, hp.vocoder))):
                             utils.vocgan_infer(mel_target_torch, vocoder, path=os.path.join(hp.eval_path, 'eval_groundtruth_{}_{}.wav'.format(basename, hp.vocoder)))   
