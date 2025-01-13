@@ -56,8 +56,9 @@ class FastSpeech2(nn.Module):
         decoder_output = self.decoder(variance_adaptor_output, mel_mask)
         mel_output = self.mel_linear(decoder_output)    # decoder output을 mel-spectrogram으로 convert
         
-        # PostNet: Five 1-d convolution with 512 channels and kernel size 5 이라고 하는데
-        # 무슨 역할인진 모르겠다.
+        # PostNet: Five 1-d convolution with 512 channels and kernel size 5
+        # Decoder가 생성한 mel-spectrogram을 더 세밀하게 보정해 음질을 향상시킴.
+        # mel-spectrogram의 잔여 오차를 줄여주는 역할을 한다.
         if self.use_postnet:
             mel_output_postnet = self.postnet(mel_output) + mel_output
         else:

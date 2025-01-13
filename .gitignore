@@ -143,6 +143,7 @@ dmypy.json
 .pyre/
 
 log/
+log_plus/
 ckpt/
 results/
 eval/

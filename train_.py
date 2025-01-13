@@ -121,11 +121,7 @@ def main(args):
             # Cal Loss
             mel_loss, mel_postnet_loss, d_loss, f_loss, e_loss = Loss(
                     log_duration_output, log_D, f0_output, f0, energy_output, energy, mel_output, mel_postnet_output, mel_target, ~src_mask, ~mel_mask)
-            total_loss = (mel_loss*hp.mel_loss_weight +
-                          mel_postnet_loss*hp.mel_loss_weight +
-                          d_loss*hp.d_loss_weight +
-                          f_loss*hp.f_loss_weight + 
-                          e_loss*hp.e_loss_weight)
+            total_loss = mel_loss + mel_postnet_loss + d_loss + f_loss + e_loss
                 
             # Logger
             t_l = total_loss.item()
@@ -203,11 +199,7 @@ def main(args):
                 model.eval()
                 with torch.no_grad():
                     d_l, f_l, e_l, m_l, m_p_l = evaluate(model, accumulated_current_step, vocoder)
-                    t_l = (m_l*hp.mel_loss_weight +
-                          m_p_l*hp.mel_postnet_loss_weight +
-                          d_l*hp.d_loss_weight +
-                          f_l*hp.f_loss_weight + 
-                          e_l*hp.e_loss_weight)
+                    t_l = m_l + m_p_l + d_l + f_l + e_l
 
                     val_logger.add_scalar('Loss/total_loss', t_l, accumulated_current_step)
                     val_logger.add_scalar('Loss/mel_loss', m_l, accumulated_current_step)

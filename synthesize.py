@@ -96,6 +96,7 @@ if __name__ == "__main__":
     parser.add_argument('--step', type=int, default=30000)
     args = parser.parse_args()
 
+    # duration, pitch, energy를 조절. 입력한 파라미터와 곱해서 크기를 조절 ex) duration 값이 1보다 작으면 더 빨리 말하게 할 수 있음
     dur_pitch_energy_aug = [1.0, 1.0, 1.0]    	# [duration, pitch, energy]
 
     model = get_FastSpeech2(args.step).to(device)

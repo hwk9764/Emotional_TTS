@@ -36,8 +36,8 @@ n_mel_channels = 80 # == gst의 hp.n_mels
 mel_fmin = 0
 mel_fmax = 8000
 
-f0_min = 50
-f0_max = 300
+f0_min = 0.0
+f0_max = 400
 energy_min = 0.0
 energy_max = 150
 
@@ -61,8 +61,8 @@ fft_conv1d_kernel_size = (9, 1)
 encoder_dropout = 0.2
 decoder_dropout = 0.2
 
-variance_predictor_filter_size = 192
-variance_predictor_kernel_size = 5
+variance_predictor_filter_size = 256
+variance_predictor_kernel_size = 3
 variance_predictor_dropout = 0.5
 
 # 30초 이상은 자른다고 할 때 mel_spec의 최대 seq_len은 sampling_rate * sec(오디오 길이) / hop_length (frame 간격)
@@ -83,12 +83,12 @@ eps = 1e-9
 weight_decay = 0.1
 early_stop = 30
 
-# Loss weight
-mel_loss_weight = 1.0
-mel_postnet_loss_weight = 1.0
-d_loss_weight = 0.8 # 원래 1.0
-f_loss_weight = 3.5 # 원래 4.0
-e_loss_weight = 3.5 # 원래 4.0
+# # Loss weight
+# mel_loss_weight = 1.0
+# mel_postnet_loss_weight = 1.0
+# d_loss_weight = 0.8 # 원래 1.0
+# f_loss_weight = 3.5 # 원래 4.0
+# e_loss_weight = 3.5 # 원래 4.0
 
 # Vocoder
 vocoder = 'vocgan'
