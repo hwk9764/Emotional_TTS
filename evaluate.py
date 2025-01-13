@@ -111,9 +111,10 @@ def evaluate(model, step, vocoder=None):
                     mel_postnet_torch = utils.de_norm(mel_postnet_torch, mean_mel, std_mel).transpose(1, 2).detach()
                     mel_postnet = utils.de_norm(mel_postnet, mean_mel, std_mel).cpu().transpose(0, 1).detach()
                     
-                    date_format = f'{datetime.now().year}-{datetime.now().month}-{datetime.now().day}-{datetime.now().hour}-{datetime.now().minute}'
+                    date_format = f'{str(datetime.now().year)[-2:]}{datetime.now().month}{datetime.now().day}-{datetime.now().hour}{datetime.now().minute}'
                     if hp.vocoder == "vocgan":
-                        utils.vocgan_infer(mel_target_torch, vocoder, path=os.path.join(hp.eval_path, '{}_eval_groundtruth_{}_{}.wav'.format(date_format, basename, hp.vocoder)))   
+                        if not os.path.isfile(os.path.join(hp.eval_path, 'eval_groundtruth_{}_{}.wav'.format(basename, hp.vocoder))):
+                            utils.vocgan_infer(mel_target_torch, vocoder, path=os.path.join(hp.eval_path, 'eval_groundtruth_{}_{}.wav'.format(basename, hp.vocoder)))   
                         utils.vocgan_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.eval_path, '{}_eval_step_{}_{}_{}.wav'.format(date_format, step, basename, hp.vocoder)))  
                     np.save(os.path.join(hp.eval_path, '{}_eval_step_{}_{}_mel.npy'.format(date_format, step, basename)), mel_postnet.numpy())
                     
