@@ -227,13 +227,12 @@ def main(args):
             
             if accumulated_current_step % hp.save_step == 0:   # 이전보다 val loss가 낮을 때만 저장
                 # save best models
-                if len(saved_models) < hp.num_best_model:
-                    saved_models.append(os.path.join(checkpoint_path, 'checkpoint_{}.pth.tar'.format(accumulated_current_step)))
-                else:  # 저장된 모델 중 가장 성능이 안좋은 모델보다 성능이 좋을 때만 저장
+                saved_models.append(os.path.join(checkpoint_path, 'checkpoint_{}.pth.tar'.format(accumulated_current_step)))
+                if len(saved_models) > hp.num_best_model:
                     prev_model = saved_models.pop(0)
                     os.system("rm {}".format(prev_model))
                     print('--------------체크포인트 {} 삭제--------------'.format(prev_model))
-                
+                    
                 torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(
                 )}, os.path.join(checkpoint_path, 'checkpoint_{}.pth.tar'.format(accumulated_current_step)))
                 print("save model at step {} ...".format(accumulated_current_step))
