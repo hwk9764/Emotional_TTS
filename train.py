@@ -230,7 +230,7 @@ def main(args):
                 if len(saved_models) < hp.num_best_model:
                     saved_models.append(os.path.join(checkpoint_path, 'checkpoint_{}.pth.tar'.format(accumulated_current_step)))
                 else:  # 저장된 모델 중 가장 성능이 안좋은 모델보다 성능이 좋을 때만 저장
-                    prev_loss, prev_model = saved_models.pop(0)
+                    prev_model = saved_models.pop(0)
                     os.system("rm {}".format(prev_model))
                     print('--------------체크포인트 {} 삭제--------------'.format(prev_model))
                 
