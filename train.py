@@ -100,7 +100,7 @@ def main(args):
 
         for idx, batch in enumerate(loader):
             start_time = time.perf_counter()
-            current_step = idx + epoch*len(loader) + 1 + args.restore_step
+            current_step = idx + epoch*len(loader) + 1 + args.restore_step*hp.accumulate_steps
             
             # Get Data
             text = torch.from_numpy(batch["text"]).long().to(device)
