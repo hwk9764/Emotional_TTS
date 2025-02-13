@@ -48,7 +48,7 @@ def evaluate(model, step, vocoder=None):
     loader = DataLoader(dataset, batch_size=hp.batch_size, shuffle=False, collate_fn=dataset.collate_fn, drop_last=False, num_workers=0, )
 
 
-    ref_path = random.sample(os.path.listdir("./ref_wav"), k=1)[0]
+    ref_path = os.path.join("./ref_wav", random.sample(os.listdir("./ref_wav"), k=1)[0])
     wav, _ = librosa.load(ref_path)
 
     mel_spectrogram, _ = Audio.tools.get_mel_from_wav(torch.FloatTensor(wav))
