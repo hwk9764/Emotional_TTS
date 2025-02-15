@@ -73,7 +73,7 @@ max_seq_len = 3500
 # Optimizer
 batch_size = 8
 accumulate_steps = 4   # 16 * 3 -> fastspeech2 논문과 동일
-epochs = 1000
+epochs = 300
 step_per_epoch = 23597/(batch_size*accumulate_steps) # 23597은 데이터셋 개수
 n_warm_up_step = 4000 #int(epochs*step_per_epoch*0.02) # 데이터 수에 따라 조절
 grad_clip_thresh = 1.0
@@ -99,9 +99,9 @@ vocoder_pretrained_model_path = "vocoder/pretrained_models/vocgan_kss_pretrained
 log_offset = 1.
 
 # Save, log and synthesis
-save_step = int(step_per_epoch)*10
-eval_step = int(step_per_epoch)*5
-log_step = int(step_per_epoch)*10
+save_step = int(step_per_epoch)*25
+eval_step = int(step_per_epoch)*25
+log_step = int(step_per_epoch)*25
 clear_Time = 20
 restore_step = 0
 synthesize_step = 193500
