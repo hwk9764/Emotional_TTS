@@ -3,6 +3,7 @@ import torch.nn as nn
 import numpy as np
 import hparams as hp
 import os
+import random
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]=hp.synth_visible_devices
@@ -18,7 +19,8 @@ from text import text_to_sequence, sequence_to_text
 import utils
 import audio as Audio
 
-import codecs
+from scipy.io.wavfile import read
+import librosa
 from g2pk import G2p
 from jamo import h2j
 
@@ -53,7 +55,15 @@ def get_FastSpeech2(num):
     model.eval()
     return model
 
-def synthesize(model, vocoder, text, sentence, dur_pitch_energy_aug, prefix=''):
+def synthesize(model, vocoder, text, sentence, ref_path, dur_pitch_energy_aug, prefix=''):
+    '''arguments
+    model : FastSpeech2
+    vocoder : VocGAN
+    text : 원문
+    sentence : 원문 g2p
+    dur_pitch_energe_aug : duration 가중치
+    prefix : 합성 음성 파일 이름 형식
+    '''
     sentence = sentence[:10] # long filename will result in OS Error
 
     mean_mel, std_mel = torch.tensor(np.load(os.path.join(hp.preprocessed_path, "mel_stat.npy")), dtype=torch.float).to(device)
@@ -65,8 +75,14 @@ def synthesize(model, vocoder, text, sentence, dur_pitch_energy_aug, prefix=''):
     mean_energy, std_energy = mean_energy.reshape(1, -1), std_energy.reshape(1, -1)
 
     src_len = torch.from_numpy(np.array([text.shape[1]])).to(device)
-        
-    mel, mel_postnet, log_duration_output, f0_output, energy_output, _, _, mel_len = model(text, src_len, dur_pitch_energy_aug=dur_pitch_energy_aug, f0_stat=f0_stat, energy_stat=energy_stat)    
+    
+    wav, _ = librosa.load(ref_path)
+
+    mel_spectrogram, _ = Audio.tools.get_mel_from_wav(torch.FloatTensor(wav))
+    mel_spectrogram = torch.from_numpy(mel_spectrogram.numpy().astype(np.float32).T).unsqueeze(0)
+    ref_mels = mel_spectrogram[:, 1:, :]
+    
+    mel, mel_postnet, log_duration_output, f0_output, energy_output, _, _, mel_len = model(text, src_len, ref_mels, dur_pitch_energy_aug=dur_pitch_energy_aug, f0_stat=f0_stat, energy_stat=energy_stat)    
 
     mel_torch = mel.transpose(1, 2).detach()
     mel_postnet_torch = mel_postnet.transpose(1, 2).detach()
@@ -75,6 +91,7 @@ def synthesize(model, vocoder, text, sentence, dur_pitch_energy_aug, prefix=''):
 
     mel_torch = utils.de_norm(mel_torch.transpose(1, 2), mean_mel, std_mel)
     mel_postnet_torch = utils.de_norm(mel_postnet_torch.transpose(1, 2), mean_mel, std_mel).transpose(1, 2)
+    D_output = (np.exp(log_duration_output[0].detach().cpu().numpy())-1).astype(np.int64)
     f0_output = utils.de_norm(f0_output, mean_f0, std_f0).squeeze().detach().cpu().numpy()
     energy_output = utils.de_norm(energy_output, mean_energy, std_energy).squeeze().detach().cpu().numpy()
 
@@ -87,7 +104,7 @@ def synthesize(model, vocoder, text, sentence, dur_pitch_energy_aug, prefix=''):
         if hp.vocoder.lower() == "vocgan":
             utils.vocgan_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.test_path, '{}_{}_{}.wav'.format(prefix, hp.vocoder, sentence)))   
     
-    utils.plot_data([(mel_postnet_torch[0].detach().cpu().numpy(), f0_output, energy_output)], ['Synthesized Spectrogram'], filename=os.path.join(hp.test_path, '{}_{}.png'.format(prefix, sentence)))
+    utils.plot_data([(mel_postnet_torch[0].detach().cpu().numpy(), f0_output, energy_output)], titles=['Synthesized Spectrogram'], filename=os.path.join(hp.test_path, '{}_{}.png'.format(prefix, sentence)))
 
 
 if __name__ == "__main__":
@@ -128,10 +145,12 @@ if __name__ == "__main__":
     
     print('sentence that will be synthesized: ')
     print(sentence)
+    ref_path = os.path.join("./ref_wav", random.sample(os.listdir("./ref_wav"), k=1)[0])
+    print(f'ref_path is {ref_path}')
     if mode != '4':
         for s in sentence:
             text = kor_preprocess(s)
-            synthesize(model, vocoder, text, s, dur_pitch_energy_aug, prefix='step_{}-duration_{}-pitch_{}-energy_{}'.format(args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2]))
+            synthesize(model, vocoder, text, s, ref_path, dur_pitch_energy_aug, prefix='step_{}-duration_{}-pitch_{}-energy_{}'.format(args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2]))
     else:
         text = kor_preprocess(sentence)
-        synthesize(model, vocoder, text, sentence, dur_pitch_energy_aug, prefix='step_{}-pitch_{}-energy_{}'.format(args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2]))
+        synthesize(model, vocoder, text, sentence, ref_path, dur_pitch_energy_aug, prefix='step_{}-pitch_{}-energy_{}'.format(args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2]))

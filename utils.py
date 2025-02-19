@@ -65,7 +65,7 @@ def get_param_num(model):
     num_param = sum(param.numel() for param in model.parameters())
     return num_param
 
-def plot_data(data, durs, titles=None, filename=None):
+def plot_data(data, durs=None, titles=None, filename=None):
     '''
     data: [(예측 spectrogram, f0, energy), (target spectrogram, f0, energy)]
     durs: duration 정보 [batch_size, duration 최대 길이 (padding된 친구들도 껴 있음)]
@@ -89,17 +89,21 @@ def plot_data(data, durs, titles=None, filename=None):
         axes[i][0].set_anchor('W')
         
         ax1 = add_axis(fig, axes[i][0])
-        ax1.plot(expand_by_duration(pitch, durs), color='tomato')
+        if durs is not None:
+            ax1.plot(expand_by_duration(pitch, durs), color='tomato')
         ax1.set_xlim(0, spectrogram.shape[1])
-        ax1.set_ylim(hp.f0_min, hp.f0_max)
-        ax1.set_ylabel('F0', color='tomato')
+        if durs is not None:
+            ax1.set_ylim(hp.f0_min, hp.f0_max)
+            ax1.set_ylabel('F0', color='tomato')
         ax1.tick_params(labelsize='x-small', colors='tomato', bottom=False, labelbottom=False)
         
         ax2 = add_axis(fig, axes[i][0], 1.2)
-        ax2.plot(expand_by_duration(energy, durs), color='darkviolet')
+        if durs is not None:
+            ax2.plot(expand_by_duration(energy, durs), color='darkviolet')
         ax2.set_xlim(0, spectrogram.shape[1])
-        ax2.set_ylim(hp.energy_min, hp.energy_max)
-        ax2.set_ylabel('Energy', color='darkviolet')
+        if durs is not None:
+            ax2.set_ylim(hp.energy_min, hp.energy_max)
+            ax2.set_ylabel('Energy', color='darkviolet')
         ax2.yaxis.set_label_position('right')
         ax2.tick_params(labelsize='x-small', colors='darkviolet', bottom=False, labelbottom=False, left=False, labelleft=False, right=True, labelright=True)
     

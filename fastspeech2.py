@@ -19,7 +19,6 @@ class FastSpeech2(nn.Module):
 
         self.encoder = Encoder()
         self.variance_adaptor = VarianceAdaptor()
-
         self.decoder = Decoder()
         self.mel_linear = nn.Linear(hp.decoder_hidden, hp.n_mel_channels)
         
@@ -27,7 +26,10 @@ class FastSpeech2(nn.Module):
         if self.use_postnet:
             self.postnet = PostNet()
 
-        self.gst = GST()
+        #self.gst = GST()
+        # text encoder에 text와 함께 들어갈 정보들. 원 핫 인코딩 -> embedding
+        self.speaker_embedding = nn.Embedding(hp.n_speaker, hp.encoder_hidden)
+        self.emotion_embdding = nn.Embedding(hp.n_emotion, hp.encoder_hidden)
 
     def forward(self, src_seq, src_len, ref_mels, mel_len=None, d_target=None, p_target=None, e_target=None, max_src_len=None, max_mel_len=None, dur_pitch_energy_aug=None, f0_stat=None, energy_stat=None):
         src_mask = get_mask_from_lengths(src_len, max_src_len)  # padding을 가리는 masking

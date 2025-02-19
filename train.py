@@ -89,7 +89,7 @@ def main(args):
     Start = time.perf_counter()
     
     # Training
-    model = model.train()
+    model.train()
     prev_l = 100    # 이전 validation loss 저장
     early_stop = 0  # early stop counter
     saved_models = []    # nbestmodel 저장
@@ -216,15 +216,6 @@ def main(args):
                     val_logger.add_scalar('Loss/F0_loss', f_l, accumulated_current_step)
                     val_logger.add_scalar('Loss/energy_loss', e_l, accumulated_current_step)
             
-                # early stop
-                if prev_l <= t_l:
-                    early_stop += 1
-                    if early_stop == hp.early_stop:
-                        print("Early Stop!")
-                        return
-                    prev_l = t_l
-                else: prev_l=0
-            
             if accumulated_current_step % hp.save_step == 0:   # 이전보다 val loss가 낮을 때만 저장
                 # save best models
                 saved_models.append(os.path.join(checkpoint_path, 'checkpoint_{}.pth.tar'.format(accumulated_current_step)))
@@ -237,6 +228,15 @@ def main(args):
                 )}, os.path.join(checkpoint_path, 'checkpoint_{}.pth.tar'.format(accumulated_current_step)))
                 print("save model at step {} ...".format(accumulated_current_step))
 
+                # early stop
+                # if prev_l <= t_l:
+                #     early_stop += 1
+                #     if early_stop == hp.early_stop:
+                #         print("Early Stop!")
+                #         return
+                #     prev_l = t_l
+                # else: prev_l=0
+                
                 model.train()
 
             end_time = time.perf_counter()

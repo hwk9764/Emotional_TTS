@@ -47,7 +47,6 @@ def evaluate(model, step, vocoder=None):
     dataset = Dataset("val.txt", sort=False)
     loader = DataLoader(dataset, batch_size=hp.batch_size, shuffle=False, collate_fn=dataset.collate_fn, drop_last=False, num_workers=0, )
 
-
     ref_path = os.path.join("./ref_wav", random.sample(os.listdir("./ref_wav"), k=1)[0])
     wav, _ = librosa.load(ref_path)
 

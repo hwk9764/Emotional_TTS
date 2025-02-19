@@ -24,7 +24,6 @@ synth_visible_devices = "0"
 text_cleaners = ['korean_cleaners']
 
 # Audio and mel
-### kss ###
 sampling_rate = 22050
 filter_length = 512    # n_fft
 hop_length = 128
@@ -46,15 +45,18 @@ ref_enc_filters = [32, 32, 64, 64, 128, 128]    # ref_enc의 6개 conv layer의 
 n_mels = 80
 E = 256 # style token embedding의 차원. text encoder(TTS의 encoder)의 input 차원 수에 맞춤.
 token_num = 10  # 감정 정보를 구하는 데 사용되는 style token의 개수. 논문에선 10개가 적당하다는 결론을 얻었다고 얘기함. style token을 weighted sum해서 style embedding을 구함.
-num_heads = 8
+num_heads = 4
 
+# speaker, emotion embedding
+n_speaker = 10
+n_emotion = 4
 
 # FastSpeech 2
-encoder_layer = 5
-encoder_head = 4
+encoder_layer = 4
+encoder_head = 2
 encoder_hidden = 256    # encoder input의 embedding 사이즈
-decoder_layer = 5
-decoder_head = 4
+decoder_layer = 6
+decoder_head = 2
 decoder_hidden = 256    # decoder input의 embedding 사이즈
 fft_conv1d_filter_size = 1024
 fft_conv1d_kernel_size = (9, 1)
@@ -73,9 +75,11 @@ max_seq_len = 3500
 # Optimizer
 batch_size = 8
 accumulate_steps = 4   # 16 * 3 -> fastspeech2 논문과 동일
-epochs = 300
+epochs = 1000
 step_per_epoch = 23597/(batch_size*accumulate_steps) # 23597은 데이터셋 개수
 n_warm_up_step = 4000 #int(epochs*step_per_epoch*0.02) # 데이터 수에 따라 조절
+anneal_step = 300000
+anneal_rate = 0.3
 grad_clip_thresh = 1.0
 learning_rate = 7e-5
 betas = (0.9, 0.98)
@@ -83,12 +87,12 @@ eps = 1e-9
 weight_decay = 0.1
 early_stop = 30
 
-# # Loss weight
+# Loss weight
 mel_loss_weight = 1.0
 mel_postnet_loss_weight = 1.0
 d_loss_weight = 1.0
-f_loss_weight = 1.5
-e_loss_weight = 1.5
+f_loss_weight = 1.0
+e_loss_weight = 1.0
 
 # Vocoder
 vocoder = 'vocgan'
