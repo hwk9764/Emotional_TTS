@@ -27,11 +27,11 @@ class FastSpeech2(nn.Module):
             self.postnet = PostNet()
 
         #self.gst = GST()
-        # text encoder에 text와 함께 들어갈 정보들. 원 핫 인코딩 -> embedding
+        # text encoder output과 합쳐질 정보들.
         self.speaker_embedding = nn.Embedding(hp.n_speaker, hp.encoder_hidden)
         self.emotion_embdding = nn.Embedding(hp.n_emotion, hp.encoder_hidden)
 
-    def forward(self, src_seq, src_len, ref_mels, mel_len=None, d_target=None, p_target=None, e_target=None, max_src_len=None, max_mel_len=None, dur_pitch_energy_aug=None, f0_stat=None, energy_stat=None):
+    def forward(self, src_seq, src_len, speaker, emotion, mel_len=None, d_target=None, p_target=None, e_target=None, max_src_len=None, max_mel_len=None, dur_pitch_energy_aug=None, f0_stat=None, energy_stat=None):
         src_mask = get_mask_from_lengths(src_len, max_src_len)  # padding을 가리는 masking
         mel_mask = get_mask_from_lengths(mel_len, max_mel_len) if mel_len is not None else None # 미래 mel token을 가리는 masking
         
@@ -40,10 +40,13 @@ class FastSpeech2(nn.Module):
         # input들이 모두 길이가 다르기 때문에 모델에 넣기 전에 padding으로 길이를 맞춰준다.
         # 이 padding에 attention하면 바람직한 결과가 나오지 않을 것이기 때문에 이 padding에 masking을 하는 것이 source masking이다.
         # 좀 더 정확히는 softmax 때 문제가 발생하므로 pad token과 attention은 할 수 있지만 softmax에서 영향을 발휘하지 않게 하기 위해 softmax 직전에 masking을 함.
-        style_embed = self.gst(ref_mels)  # [N, 256]
+        #style_embed = self.gst(ref_mels)  # [N, 256]
         #style_embed = style_embed.expand_as(encoder_output)    # expand나 expand_as나 똑같은데 코드의 유연성과 재사용성을 위해 expand가 더 적합하다고 함.
-        style_embed = style_embed.expand(-1, encoder_output.size(1), -1)
-        encoder_output = encoder_output + style_embed
+        #style_embed = style_embed.expand(-1, encoder_output.size(1), -1)
+
+        speaker_embed = self.speaker_embedding(speaker).unsqueeze(1).expand(-1, encoder_output.size(1), -1)
+        emotion_embed = self.emotion_embdding(emotion).unsqueeze(1).expand(-1, encoder_output.size(1), -1)
+        encoder_output = encoder_output + speaker_embed + emotion_embed
         
         # train
         if d_target is not None:

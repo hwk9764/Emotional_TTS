@@ -5,7 +5,7 @@ import numpy as np
 import math
 import os
 
-import hparams
+import hparams as hp
 import audio as Audio
 from utils import pad_1D, pad_2D, process_meta, standard_norm
 from text import text_to_sequence, sequence_to_text
@@ -17,11 +17,11 @@ class Dataset(Dataset):
     # 데이터를 불러오는 과정에서 필요한 data의 dir과 pararm들을 불러온다.
     def __init__(self, filename="train.txt", sort=True):
         # self.basename에는 모든 오디오파일들이, self.text에는 오디오에 대응하는 모든 transcript이 있음.
-        self.basename, self.text = process_meta(os.path.join(hparams.preprocessed_path, filename))
+        self.basename, self.text, self.emotion, self.speaker = process_meta(os.path.join(hp.preprocessed_path, filename))
         
-        self.mean_mel, self.std_mel = np.load(os.path.join(hparams.preprocessed_path, "mel_stat.npy"))
-        self.mean_f0, self.std_f0 = np.load(os.path.join(hparams.preprocessed_path, "f0_stat.npy"))
-        self.mean_energy, self.std_energy = np.load(os.path.join(hparams.preprocessed_path, "energy_stat.npy"))
+        self.mean_mel, self.std_mel = np.load(os.path.join(hp.preprocessed_path, "mel_stat.npy"))
+        self.mean_f0, self.std_f0 = np.load(os.path.join(hp.preprocessed_path, "f0_stat.npy"))
+        self.mean_energy, self.std_energy = np.load(os.path.join(hp.preprocessed_path, "energy_stat.npy"))
 
         self.sort = sort
 
@@ -34,21 +34,23 @@ class Dataset(Dataset):
         # 이 함수가 반드시 있어야 함. index를 이용해 각 배치의 데이터를 반환할 수 있는 형태로 보내줘야 함.
         t=self.text[idx]
         basename=self.basename[idx]
+        s = hp.speaker_id[self.speaker[idx]]
+        e = hp.emotion_id[self.emotion[idx]]
         subfolder = basename[-7:-5]
         phone = np.array(text_to_sequence(t, []))
-        if phone[0]>hparams.max_seq_len: print('phone : ', phone.shape)
+        if phone[0]>hp.max_seq_len: print('phone : ', phone.shape)
         try:
             mel_path = os.path.join(
-                hparams.preprocessed_path, "mel", subfolder, "{}-mel-{}.npy".format(hparams.dataset, basename))
+                hp.preprocessed_path, "mel", subfolder, "{}-mel-{}.npy".format(hp.dataset, basename))
             mel_target = np.load(mel_path)
             D_path = os.path.join(
-                hparams.preprocessed_path, "alignment", subfolder, "{}-ali-{}.npy".format(hparams.dataset, basename))
+                hp.preprocessed_path, "alignment", subfolder, "{}-ali-{}.npy".format(hp.dataset, basename))
             D = np.load(D_path)
             f0_path = os.path.join(
-                hparams.preprocessed_path, "f0", subfolder, "{}-f0-{}.npy".format(hparams.dataset, basename))
+                hp.preprocessed_path, "f0", subfolder, "{}-f0-{}.npy".format(hp.dataset, basename))
             f0 = np.load(f0_path)
             energy_path = os.path.join(
-                hparams.preprocessed_path, "energy", subfolder, "{}-energy-{}.npy".format(hparams.dataset, basename))
+                hp.preprocessed_path, "energy", subfolder, "{}-energy-{}.npy".format(hp.dataset, basename))
             energy = np.load(energy_path)
         except:
           print("dataset error, basename :", basename)
@@ -59,7 +61,9 @@ class Dataset(Dataset):
                   "mel_target": mel_target,
                   "D": D,   # alignment == duration
                   "f0": f0,
-                  "energy": energy}
+                  "energy": energy,
+                  "speaker_id":s,
+                  "emotion_id":e}
         return sample
 
 
@@ -110,6 +114,8 @@ class Dataset(Dataset):
         Ds = [batch["D"] for batch in batchs]
         f0s = [standard_norm(batch["f0"], self.mean_f0, self.std_f0) for batch in batchs]
         energies = [standard_norm(batch["energy"], self.mean_energy, self.std_energy) for batch in batchs]
+        speakers = np.array([batch["speaker_id"] for batch in batchs])
+        emotions = np.array([batch["emotion_id"] for batch in batchs])
         
         for text, D, id_ in zip(texts, Ds, ids):
             if len(text) != len(D):
@@ -130,7 +136,7 @@ class Dataset(Dataset):
         mel_targets = pad_2D(mel_targets)
         f0s = pad_1D(f0s)
         energies = pad_1D(energies)
-        log_Ds = np.log(Ds + hparams.log_offset)
+        log_Ds = np.log(Ds + hp.log_offset)
 
         out = {"id": ids,
                "text": texts,
@@ -140,7 +146,9 @@ class Dataset(Dataset):
                "f0": f0s,
                "energy": energies,
                "src_len": length_text,
-               "mel_len": length_mel}
+               "mel_len": length_mel,
+               "speaker_id":speakers,
+               "emotion_id":emotions}
         
         return out
 
@@ -197,7 +205,7 @@ if __name__ == "__main__":
     dataset = Dataset('val.txt')
     training_loader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=dataset.collate_fn,
         drop_last=True, num_workers=0)
-    total_step = hparams.epochs * len(training_loader) * hparams.batch_size
+    total_step = hp.epochs * len(training_loader) * hp.batch_size
 
     cnt = 0
     for i, batchs in enumerate(training_loader):

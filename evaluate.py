@@ -47,12 +47,12 @@ def evaluate(model, step, vocoder=None):
     dataset = Dataset("val.txt", sort=False)
     loader = DataLoader(dataset, batch_size=hp.batch_size, shuffle=False, collate_fn=dataset.collate_fn, drop_last=False, num_workers=0, )
 
-    ref_path = os.path.join("./ref_wav", random.sample(os.listdir("./ref_wav"), k=1)[0])
-    wav, _ = librosa.load(ref_path)
+    # ref_path = os.path.join("./ref_wav", random.sample(os.listdir("./ref_wav"), k=1)[0])
+    # wav, _ = librosa.load(ref_path)
 
-    mel_spectrogram, _ = Audio.tools.get_mel_from_wav(torch.FloatTensor(wav))
-    mel_spectrogram = torch.from_numpy(mel_spectrogram.numpy().astype(np.float32).T).unsqueeze(0)
-    ref_mels = mel_spectrogram[:, 1:, :]
+    # mel_spectrogram, _ = Audio.tools.get_mel_from_wav(torch.FloatTensor(wav))
+    # mel_spectrogram = torch.from_numpy(mel_spectrogram.numpy().astype(np.float32).T).unsqueeze(0)
+    # ref_mels = mel_spectrogram[:, 1:, :]
     
     # Get loss function
     Loss = FastSpeech2Loss().to(device)
@@ -65,24 +65,26 @@ def evaluate(model, step, vocoder=None):
     mel_p_l = []
     current_step = 0
     idx = 0
-    for i, batchs in enumerate(loader):
+    for i, batch in enumerate(loader):
             # Get Data
-            id_ = batchs["id"]
-            text = torch.from_numpy(batchs["text"]).long().to(device)
-            mel_target = torch.from_numpy(batchs["mel_target"]).float().to(device)
-            D = torch.from_numpy(batchs["D"]).int().to(device)
-            log_D = torch.from_numpy(batchs["log_D"]).int().to(device)
-            f0 = torch.from_numpy(batchs["f0"]).float().to(device)
-            energy = torch.from_numpy(batchs["energy"]).float().to(device)
-            src_len = torch.from_numpy(batchs["src_len"]).long().to(device)
-            mel_len = torch.from_numpy(batchs["mel_len"]).long().to(device)
-            max_src_len = np.max(batchs["src_len"]).astype(np.int32)
-            max_mel_len = np.max(batchs["mel_len"]).astype(np.int32)
+            id_ = batch["id"]
+            text = torch.from_numpy(batch["text"]).long().to(device)
+            mel_target = torch.from_numpy(batch["mel_target"]).float().to(device)   # mel spectrogram.shape : (batch_size, num_frames, mel_bin)
+            D = torch.from_numpy(batch["D"]).long().to(device)  # => duration
+            log_D = torch.from_numpy(batch["log_D"]).float().to(device)
+            f0 = torch.from_numpy(batch["f0"]).float().to(device)
+            energy = torch.from_numpy(batch["energy"]).float().to(device)
+            src_len = torch.from_numpy(batch["src_len"]).long().to(device)
+            mel_len = torch.from_numpy(batch["mel_len"]).long().to(device)
+            max_src_len = np.max(batch["src_len"]).astype(np.int32)
+            max_mel_len = np.max(batch["mel_len"]).astype(np.int32)
+            speaker = torch.from_numpy(batch['speaker_id']).long().to(device)
+            emotion = torch.from_numpy(batch['emotion_id']).long().to(device)
 
             with torch.no_grad():
                 # Forward
                 mel_output, mel_postnet_output, log_duration_output, f0_output, energy_output, src_mask, mel_mask, out_mel_len = model(
-                        text, src_len, ref_mels, mel_len, D, f0, energy, max_src_len, max_mel_len)
+                        text, src_len, speaker, emotion, mel_len, D, f0, energy, max_src_len, max_mel_len)
                 
                 # Cal Loss
                 mel_loss, mel_postnet_loss, d_loss, f_loss, e_loss = Loss(

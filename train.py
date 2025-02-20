@@ -113,10 +113,12 @@ def main(args):
             mel_len = torch.from_numpy(batch["mel_len"]).long().to(device)
             max_src_len = np.max(batch["src_len"]).astype(np.int32)
             max_mel_len = np.max(batch["mel_len"]).astype(np.int32)
+            speaker = torch.from_numpy(batch['speaker_id']).long().to(device)
+            emotion = torch.from_numpy(batch['emotion_id']).long().to(device)
             
             # Forward
             mel_output, mel_postnet_output, log_duration_output, f0_output, energy_output, src_mask, mel_mask, _ = model(
-                text, src_len, mel_target, mel_len, D, f0, energy, max_src_len, max_mel_len)
+                text, src_len, speaker, emotion, mel_len, D, f0, energy, max_src_len, max_mel_len)
             
             # Cal Loss
             mel_loss, mel_postnet_loss, d_loss, f_loss, e_loss = Loss(

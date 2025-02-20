@@ -50,6 +50,8 @@ num_heads = 4
 # speaker, emotion embedding
 n_speaker = 10
 n_emotion = 4
+speaker_id = {1:0, 2:1, 4:2, 7:3, 14:4, 20:5, 53:6, 55:7, 59:8, 62:9}
+emotion_id = {"분노":0, "기쁨":1, "무감정":2, "슬픔":3}
 
 # FastSpeech 2
 encoder_layer = 4
@@ -73,8 +75,8 @@ variance_predictor_dropout = 0.5
 max_seq_len = 3500
 
 # Optimizer
-batch_size = 8
-accumulate_steps = 4   # 16 * 3 -> fastspeech2 논문과 동일
+batch_size = 48
+accumulate_steps = 1   # 16 * 3 -> fastspeech2 논문과 동일
 epochs = 1000
 step_per_epoch = 23597/(batch_size*accumulate_steps) # 23597은 데이터셋 개수
 n_warm_up_step = 4000 #int(epochs*step_per_epoch*0.02) # 데이터 수에 따라 조절

@@ -55,11 +55,15 @@ def process_meta(meta_path):
     with open(meta_path, "r", encoding="utf-8") as f:
         text = []
         name = []
+        emotion = []
+        speaker = []
         for line in f.readlines():
-            n, t = line.strip('\n').split('|')
+            n, t, e = line.strip('\n').split('|')
             name.append(n)
             text.append(t)
-        return name, text
+            emotion.append(e)
+            speaker.append(int(n[-7:-5]))
+        return name, text, emotion, speaker
 
 def get_param_num(model):
     num_param = sum(param.numel() for param in model.parameters())
@@ -278,3 +282,4 @@ def expand_by_duration(x_char, durs):
         current_idx += dur
     
     return x_frame
+
