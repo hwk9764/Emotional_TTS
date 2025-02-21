@@ -95,8 +95,7 @@ class STFT(torch.nn.Module):
             # remove modulation effects
             approx_nonzero_indices = torch.from_numpy(
                 np.where(window_sum > tiny(window_sum))[0])
-            window_sum = torch.autograd.Variable(
-                torch.from_numpy(window_sum), requires_grad=False)
+            window_sum = torch.from_numpy(window_sum)
             window_sum = window_sum.cuda() if magnitude.is_cuda else window_sum
             inverse_transform[:, :,
                               approx_nonzero_indices] /= window_sum[approx_nonzero_indices]
@@ -142,8 +141,8 @@ class TacotronSTFT(torch.nn.Module):
         but in preprocessing, from a wav => 1차원 waveform in, 2차원 mel-spectrogram out
         PARAMS
         ------
-        y: (학습 시) Variable(torch.FloatTensor) with shape (B, T) in range [-1, 1]
-            (preprocess 시) Variable(torch.FloatTensor) with shpae (T, )
+        y: (학습 시) torch.FloatTensor with shape (B, T) in range [-1, 1]
+            (preprocess 시) torch.FloatTensor with shpae (T, )
 
         param B : batch size(hparams에서 batch size 보기), T : # of timestep 또는 sample의 개수(즉, waveform의 duration)
 
