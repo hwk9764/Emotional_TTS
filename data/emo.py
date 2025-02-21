@@ -111,14 +111,15 @@ def process_utterance(in_dir, out_dir, tg_dir, subfolder, basename, scalers, is_
     
     # Compute mel-scale spectrogram and energy
     mel_spectrogram, energy = Audio.tools.get_mel_from_wav(torch.FloatTensor(wav))
-    mel_spectrogram = mel_spectrogram.numpy().astype(np.float32)[:, :sum(duration)]
-    energy = energy.numpy().astype(np.float32)[:sum(duration)]
+    mel_spectrogram = mel_spectrogram[:, :sum(duration)]
+    energy = energy[:sum(duration)]
 
     f0, energy = remove_outlier(f0), remove_outlier(energy)
     f0, energy = average_by_duration(f0, duration), average_by_duration(energy, duration)
         
     if mel_spectrogram.shape[1] >= hp.max_seq_len:
         # 이렇게 아예 누락하는 이유는 wav를 자르면 text도 잘린 부분만큼 처리를 해줘야하는데 그게 어려워서
+        print('bigger than max length : ', basename)
         return None
     
     # Save alignment
@@ -159,6 +160,6 @@ def process_utterance(in_dir, out_dir, tg_dir, subfolder, basename, scalers, is_
         if sum(energy) == 0:
             print('energy 왜 이럼? ',basename)'''
         f0_scaler.partial_fit(f0[f0!=0].reshape(-1, 1))
-        energy_scaler.partial_fit(energy[energy != 0].reshape(-1, 1))
+        energy_scaler.partial_fit(energy[energy!=0].reshape(-1, 1))
 
     return '|'.join([basename, text]), mel_spectrogram.shape[1]

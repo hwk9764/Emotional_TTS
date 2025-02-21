@@ -1,6 +1,5 @@
 import torch
 import torch.nn.functional as F
-from torch.autograd import Variable
 import numpy as np
 
 from scipy.signal import get_window
@@ -65,7 +64,7 @@ class STFT(torch.nn.Module):
 
         forward_transform = F.conv1d(
             input_data.to(self.device),
-            Variable(self.forward_basis, requires_grad=False).to(self.device),
+            self.forward_basis.to(self.device),
             stride=self.hop_length,
             padding=0).cpu()
 
@@ -74,8 +73,7 @@ class STFT(torch.nn.Module):
         imag_part = forward_transform[:, cutoff:, :]
 
         magnitude = torch.sqrt(real_part**2 + imag_part**2)
-        phase = torch.autograd.Variable(
-            torch.atan2(imag_part.data, real_part.data))
+        phase = torch.atan2(imag_part.data, real_part.data)
 
         return magnitude, phase
 
@@ -85,7 +83,7 @@ class STFT(torch.nn.Module):
 
         inverse_transform = F.conv_transpose1d(
             recombine_magnitude_phase,
-            Variable(self.inverse_basis, requires_grad=False),
+            self.inverse_basis,
             stride=self.hop_length,
             padding=0)
 

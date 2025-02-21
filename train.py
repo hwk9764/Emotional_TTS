@@ -76,7 +76,7 @@ def main(args):
         vocoder = None
 
     # Init logger
-    log_path = hp.log_path
+    log_path = hp.log_plus_path
     if not os.path.exists(log_path):
         os.makedirs(log_path)
         os.makedirs(os.path.join(log_path, 'train'))

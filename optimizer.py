@@ -10,7 +10,7 @@ class ScheduledOptim():
         self.n_warmup_steps = n_warmup_steps
         self.n_current_steps = current_steps
         self.n_total_steps = total_steps//hp.accumulate_steps
-        self.init_lr = hp.learning_rate #np.power(d_model, -0.5)
+        self.init_lr = np.power(d_model, -0.5)
 
     def step_and_update_lr(self):
         self._update_learning_rate()
@@ -22,12 +22,12 @@ class ScheduledOptim():
 
     # Transformer의 구현 방식
     def _get_lr_scale(self):
-        lr = np.min([
+        scale = np.min([
             np.power(self.n_current_steps, -0.5),
             np.power(self.n_warmup_steps, -1.5) * self.n_current_steps])
         if self.n_current_steps > hp.anneal_step:
-            lr *= hp.anneal_rate
-        return lr
+            scale *= hp.anneal_rate
+        return scale
 
     # 예시: cosine decay with warmup
     # def _get_lr_scale(self):

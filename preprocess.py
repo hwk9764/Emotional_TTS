@@ -3,12 +3,13 @@ from data import emo
 import hparams as hp
 
 def write_metadata(train, val, out_dir):
+    emotion_dict = {"A":"분노", "H":"기쁨", "N":"무감정", "S":"슬픔"}
     with open(os.path.join(out_dir, 'train.txt'), 'w', encoding='utf-8') as f:
         for m in train:
-            f.write(m + '\n')
+            f.write(m + "|" + emotion_dict[m[2]] + '\n')
     with open(os.path.join(out_dir, 'val.txt'), 'w', encoding='utf-8') as f:
         for m in val:
-            f.write(m + '\n')
+            f.write(m + "|" + emotion_dict[m[2]] + '\n')
 
 def main():
     in_dir = hp.data_path   # "D:/Dataset/emotion/Training/01.원천데이터"

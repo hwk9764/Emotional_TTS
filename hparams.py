@@ -16,6 +16,9 @@ test_path = "./results"
 textgrid_path = "D:/Dataset/emotion/emotion_dataset/TextGrid"
 num_best_model = 3
 
+# Dataset
+with open(os.path.join(preprocessed_path, train_meta_name), 'r', encoding='utf-8') as f:
+    num_dataset = len(f.readlines())
 ### set GPU number ###
 train_visible_devices = "0"
 synth_visible_devices = "0"
@@ -78,7 +81,7 @@ max_seq_len = 3500
 batch_size = 48
 accumulate_steps = 1   # 16 * 3 -> fastspeech2 논문과 동일
 epochs = 1000
-step_per_epoch = 23597/(batch_size*accumulate_steps) # 23597은 데이터셋 개수
+step_per_epoch = num_dataset/(batch_size*accumulate_steps) # 23597은 데이터셋 개수
 n_warm_up_step = 4000 #int(epochs*step_per_epoch*0.02) # 데이터 수에 따라 조절
 anneal_step = 300000
 anneal_rate = 0.3
