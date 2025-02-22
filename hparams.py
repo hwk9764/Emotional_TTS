@@ -50,11 +50,11 @@ num_heads = 8
 
 
 # FastSpeech 2
-encoder_layer = 5
-encoder_head = 4
+encoder_layer = 4
+encoder_head = 2
 encoder_hidden = 256    # encoder input의 embedding 사이즈
-decoder_layer = 5
-decoder_head = 4
+decoder_layer = 4
+decoder_head = 2
 decoder_hidden = 256    # decoder input의 embedding 사이즈
 fft_conv1d_filter_size = 1024
 fft_conv1d_kernel_size = (9, 1)
@@ -71,24 +71,29 @@ variance_predictor_dropout = 0.5
 max_seq_len = 3500
 
 # Optimizer
-batch_size = 8
-accumulate_steps = 4   # 16 * 3 -> fastspeech2 논문과 동일
+batch_size = 48
+accumulate_steps = 1   # 16 * 3 -> fastspeech2 논문과 동일
 epochs = 300
 step_per_epoch = 23597/(batch_size*accumulate_steps) # 23597은 데이터셋 개수
-n_warm_up_step = 4000 #int(epochs*step_per_epoch*0.02) # 데이터 수에 따라 조절
 grad_clip_thresh = 1.0
-learning_rate = 7e-5
 betas = (0.9, 0.98)
 eps = 1e-9
 weight_decay = 0.1
 early_stop = 30
 
-# # Loss weight
+# Scheduler
+learning_rate = 1e-3
+warmup_steps = int(epochs*step_per_epoch*0.02) # 데이터 수에 따라 조절
+T_0 = 1
+T_mult = 1
+gamma = 1.
+
+# Loss weight
 mel_loss_weight = 1.0
 mel_postnet_loss_weight = 1.0
 d_loss_weight = 1.0
-f_loss_weight = 1.5
-e_loss_weight = 1.5
+f_loss_weight = 1.0
+e_loss_weight = 1.0
 
 # Vocoder
 vocoder = 'vocgan'
