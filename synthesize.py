@@ -143,14 +143,27 @@ if __name__ == "__main__":
     elif mode=='3':
         sentence = test_sentence
     
-    print('sentence that will be synthesized: ')
-    print(sentence)
-    ref_path = os.path.join("./ref_wav", random.sample(os.listdir("./ref_wav"), k=1)[0])
-    print(f'ref_path is {ref_path}')
+    print('sentence that will be synthesized: ', sentence)
+    print('what speaker do you want? choose between (1, 2, 4, 7, 14, 20, 53, 55, 59, 62)')
+    while True:
+        speaker=int(input())
+        if hp.speaker_id.get(speaker) != None:
+            print('you choosed ', speaker)
+            speaker = hp.speaker_id[speaker]
+            break
+        print('input proper value')
+    print('what emotion do you want? choose between (분노, 기쁨, 무감정, 슬픔)')
+    while True:
+        emotion=input()
+        if hp.emotion_id.get(emotion) != None:
+            print('you choosed ', emotion)
+            emotion = hp.emotion_id[emotion]
+            break
+        print('input proper value')
     if mode != '4':
         for s in sentence:
             text = kor_preprocess(s)
-            synthesize(model, vocoder, text, s, ref_path, dur_pitch_energy_aug, prefix='step_{}-duration_{}-pitch_{}-energy_{}'.format(args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2]))
+            synthesize(model, vocoder, text, s, speaker, emotion, dur_pitch_energy_aug, prefix='step_{}-duration_{}-pitch_{}-energy_{}'.format(args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2]))
     else:
         text = kor_preprocess(sentence)
-        synthesize(model, vocoder, text, sentence, ref_path, dur_pitch_energy_aug, prefix='step_{}-pitch_{}-energy_{}'.format(args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2]))
+        synthesize(model, vocoder, text, sentence, speaker, emotion, dur_pitch_energy_aug, prefix='step_{}-pitch_{}-energy_{}'.format(args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2]))

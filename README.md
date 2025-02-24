@@ -111,12 +111,5 @@ We specially thank to ming024 for providing FastSpeech2 pytorch-implentation. Th
 - [FastSpeech: Fast, Robust and Controllable Text to Speech](https://arxiv.org/abs/1905.09263), Y. Ren, *et al*.
 - [ming024's FastSpeech2 impelmentation](https://github.com/ming024/FastSpeech2)
 - [rishikksh20's VocGAN implementation](https://github.com/rishikksh20/VocGAN)
-
-
-# Note
-
-2023.01.04. 많은 분들이 Text-to-Wav Forced Alignment에 대한 질문을 주셔서 MFA를 구동하는 [tutorial code](https://github.com/Jackson-Kang/MFARunner)를 만들었습니다. 아래 지원하는 dataset만 다운 받으시면 바로 MFA 구동이 가능합니다. 각 dataset 별 전처리 세부사항은 [여기](https://github.com/Jackson-Kang/MFARunner/tree/main/dataset)를 참조하시기 바랍니다. 부족하지만, 연구에 도움이 되었으면 좋겠습니다.
-
-* [Korean Single Speaker dataset (KSS dataset, 한국어 여성 단일화자 데이터셋)](https://www.kaggle.com/datasets/bryanpark/korean-single-speaker-speech-dataset)
-* [감정 음성합성 데이터셋(여성 단일화자, 7개 감정)](https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100)
-* [EmotionTTS OpenDB (다화자 다감정 DB만 사용)](https://github.com/emotiontts/emotiontts_open_db/tree/master/Dataset/SpeechCorpus)
+- [HGU-DLLAB](https://github.com/HGU-DLLAB/Korean-FastSpeech2-Pytorch?tab=readme-ov-file)
+- [JH-lee95](https://github.com/JH-lee95/Fastspeech2-Korean?tab=readme-ov-file)

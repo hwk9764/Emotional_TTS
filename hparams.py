@@ -75,13 +75,13 @@ variance_predictor_dropout = 0.5
 # 30초 이상은 자른다고 할 때 mel_spec의 최대 seq_len은 sampling_rate * sec(오디오 길이) / hop_length (frame 간격)
 # 22050 * 30 / 128 ≒ 5168
 # 오디오를 자르게 되면 그에 맞춰 label인 text도 잘라야 하는데 이 과정이 귀찮으므로 자르지 않도록 크게 잡는 것이 편함
-max_seq_len = 3500
+max_seq_len = 2000
 
 # Optimizer
 batch_size = 48
-accumulate_steps = 1   # 16 * 3 -> fastspeech2 논문과 동일
-epochs = 1000
-step_per_epoch = num_dataset/(batch_size*accumulate_steps) # 23597은 데이터셋 개수
+accumulate_steps = 1
+epochs = 500
+step_per_epoch = num_dataset/(batch_size*accumulate_steps)
 n_warm_up_step = 4000 #int(epochs*step_per_epoch*0.02) # 데이터 수에 따라 조절
 anneal_step = 300000
 anneal_rate = 0.3
