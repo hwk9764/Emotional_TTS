@@ -4,6 +4,7 @@ import numpy as np
 import hparams as hp
 import os
 import random
+from datetime import datetime
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]=hp.synth_visible_devices
@@ -98,16 +99,23 @@ def synthesize(model, vocoder, text, sentence, ref_path, dur_pitch_energy_aug, p
     if not os.path.exists(hp.test_path):
         os.makedirs(hp.test_path)
 
-    Audio.tools.inv_mel_spec(mel_postnet_torch[0], os.path.join(hp.test_path, '{}_griffin_lim_{}.wav'.format(prefix, sentence)))
+    Audio.tools.inv_mel_spec(mel_postnet_torch[0], os.path.join(hp.test_path, '{}_{}_griffin_lim.wav'.format(prefix, sentence)))
 
     if vocoder is not None:
         if hp.vocoder.lower() == "vocgan":
-            utils.vocgan_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.test_path, '{}_{}_{}.wav'.format(prefix, hp.vocoder, sentence)))   
+            utils.vocgan_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.test_path, '{}_{}_{}.wav'.format(prefix, sentence, hp.vocoder)))
     
     utils.plot_data([(mel_postnet_torch[0].detach().cpu().numpy(), f0_output, energy_output)], titles=['Synthesized Spectrogram'], filename=os.path.join(hp.test_path, '{}_{}.png'.format(prefix, sentence)))
 
 
 if __name__ == "__main__":
+    year = str(datetime.now().year)
+    month = datetime.now().month if datetime.now().month>9 else '0'+str(datetime.now().month)
+    day = datetime.now().day if datetime.now().day>9 else '0'+str(datetime.now().day)
+    hour = datetime.now().hour if datetime.now().hour>9 else '0'+str(datetime.now().hour)
+    minute = datetime.now().minute if datetime.now().minute>9 else '0'+str(datetime.now().minute)
+    date_format = f'{year}{month}{day}-{hour}{minute}'
+    
     # Test
     parser = argparse.ArgumentParser()
     parser.add_argument('--step', type=int, default=30000)
@@ -149,7 +157,7 @@ if __name__ == "__main__":
         speaker=int(input())
         if hp.speaker_id.get(speaker) != None:
             print('you choosed ', speaker)
-            speaker = hp.speaker_id[speaker]
+            s_id = hp.speaker_id[speaker]
             break
         print('input proper value')
     print('what emotion do you want? choose between (분노, 기쁨, 무감정, 슬픔)')
@@ -157,13 +165,13 @@ if __name__ == "__main__":
         emotion=input()
         if hp.emotion_id.get(emotion) != None:
             print('you choosed ', emotion)
-            emotion = hp.emotion_id[emotion]
+            e_id = hp.emotion_id[emotion]
             break
         print('input proper value')
     if mode != '4':
         for s in sentence:
             text = kor_preprocess(s)
-            synthesize(model, vocoder, text, s, speaker, emotion, dur_pitch_energy_aug, prefix='step_{}-duration_{}-pitch_{}-energy_{}'.format(args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2]))
+            synthesize(model, vocoder, text, s, s_id, e_id, dur_pitch_energy_aug, prefix='{}-step_{}-duration_{}-pitch_{}-energy_{}-speaker_{}-emotion_{}'.format(date_format, args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2], speaker, emotion))
     else:
         text = kor_preprocess(sentence)
-        synthesize(model, vocoder, text, sentence, speaker, emotion, dur_pitch_energy_aug, prefix='step_{}-pitch_{}-energy_{}'.format(args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2]))
+        synthesize(model, vocoder, text, sentence, s_id, e_id, dur_pitch_energy_aug, prefix='{}-step_{}-duration_{}-pitch_{}-energy_{}-speaker_{}-emotion_{}'.format(date_format, args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2], speaker, emotion))
