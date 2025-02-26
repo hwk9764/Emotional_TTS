@@ -99,11 +99,11 @@ def synthesize(model, vocoder, text, sentence, ref_path, dur_pitch_energy_aug, p
     if not os.path.exists(hp.test_path):
         os.makedirs(hp.test_path)
 
+    # griffin-lim으로 생성
     Audio.tools.inv_mel_spec(mel_postnet_torch[0], os.path.join(hp.test_path, '{}_{}_griffin_lim.wav'.format(prefix, sentence)))
-
-    if hp.vocoder.lower() == "vocgan":
-        utils.vocoder_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.test_path, '{}_{}_{}.wav'.format(prefix, sentence, hp.vocoder)))
-    
+    # vocoder로 생성
+    utils.vocoder_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.test_path, '{}_{}_{}.wav'.format(prefix, sentence, hp.vocoder)))
+    # mel spectrogram 그리기
     utils.plot_data([(mel_postnet_torch[0].detach().cpu().numpy(), f0_output, energy_output)], titles=['Synthesized Spectrogram'], filename=os.path.join(hp.test_path, '{}_{}.png'.format(prefix, sentence)))
 
 
