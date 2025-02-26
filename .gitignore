@@ -113,11 +113,11 @@ ENV/
 env.bak/
 venv.bak/
 log/
+log_plus/
 ckpt/
-eval/
+#eval/
 results/
 transforemres/__pycache__/
-vocoder/
 text/__pycache__/
 data/__pycache__/
 audio/__pycache__/
@@ -142,10 +142,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-log/
-log_plus/
-ckpt/
-results/
-eval/
+
 vocoder/pretrained_models/
 *.zip

@@ -100,17 +100,17 @@ f_loss_weight = 1.0
 e_loss_weight = 1.0
 
 # Vocoder
-vocoder = 'vocgan'
-vocoder_pretrained_model_name = "vocgan_kss_pretrained_model_epoch_4500(1).pt"
-vocoder_pretrained_model_path = "vocoder/pretrained_models/vocgan_kss_pretrained_model_epoch_4500(1).pt"
+vocoder = "hifigan"#'vocgan'
+vocgan_pretrained_model_path = "vocoder/pretrained_models/vocgan_kss_pretrained_model_epoch_4500(1).pt"
+hifigan_pretrained_model_path = "vocoder/pretrained_models/g_02500000"
 
 # Log-scaled duration
 log_offset = 1.
 
 # Save, log and synthesis
-save_step = int(step_per_epoch)*25
-eval_step = int(step_per_epoch)*25
-log_step = int(step_per_epoch)*25
+save_step = int(step_per_epoch)*50
+eval_step = int(step_per_epoch)*50
+log_step = int(step_per_epoch)*50
 clear_Time = 20
 restore_step = 0
 synthesize_step = 193500

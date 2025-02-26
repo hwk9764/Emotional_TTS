@@ -124,8 +124,7 @@ def get_mask_from_lengths(lengths, max_len=None):
     mask = (ids >= lengths.unsqueeze(1).expand(-1, max_len))
     return mask
 
-def get_vocgan(ckpt_path, n_mel_channels=hp.n_mel_channels, generator_ratio = [4, 4, 2, 2, 2, 2], n_residual_layers=4, mult=256, out_channels=1):
-
+def get_vocoder(ckpt_path, n_mel_channels=hp.n_mel_channels, generator_ratio = [4, 4, 2, 2, 2, 2], n_residual_layers=4, mult=256, out_channels=1):
     checkpoint = torch.load(ckpt_path, map_location=torch.device(device))
     model = Generator(n_mel_channels, n_residual_layers,
                         ratios=generator_ratio, mult=mult,
@@ -136,7 +135,7 @@ def get_vocgan(ckpt_path, n_mel_channels=hp.n_mel_channels, generator_ratio = [4
 
     return model
 
-def vocgan_infer(mel, vocoder, path):
+def vocoder_infer(mel, vocoder, path):
     model = vocoder
 
     with torch.no_grad():

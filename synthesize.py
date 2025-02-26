@@ -14,7 +14,7 @@ import re
 from string import punctuation
 
 from fastspeech2 import FastSpeech2
-from vocoder import vocgan_generator
+from vocoder import vocgan_generator, hifigan_generator
 
 from text import text_to_sequence, sequence_to_text
 import utils
@@ -101,9 +101,8 @@ def synthesize(model, vocoder, text, sentence, ref_path, dur_pitch_energy_aug, p
 
     Audio.tools.inv_mel_spec(mel_postnet_torch[0], os.path.join(hp.test_path, '{}_{}_griffin_lim.wav'.format(prefix, sentence)))
 
-    if vocoder is not None:
-        if hp.vocoder.lower() == "vocgan":
-            utils.vocgan_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.test_path, '{}_{}_{}.wav'.format(prefix, sentence, hp.vocoder)))
+    if hp.vocoder.lower() == "vocgan":
+        utils.vocoder_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.test_path, '{}_{}_{}.wav'.format(prefix, sentence, hp.vocoder)))
     
     utils.plot_data([(mel_postnet_torch[0].detach().cpu().numpy(), f0_output, energy_output)], titles=['Synthesized Spectrogram'], filename=os.path.join(hp.test_path, '{}_{}.png'.format(prefix, sentence)))
 
@@ -126,30 +125,29 @@ if __name__ == "__main__":
 
     model = get_FastSpeech2(args.step).to(device)
     if hp.vocoder == 'vocgan':
-        vocoder = utils.get_vocgan(ckpt_path=hp.vocoder_pretrained_model_path)
-    else:
-        vocoder = None   
+        vocoder = utils.get_vocoder(ckpt_path=hp.vocgan_pretrained_model_path)
+    elif hp.vocoder == "hifigan":
+        vocoder = utils.get_vocoder(ckpt_path=hp.hifigan_pretrained_model_path)
  
     #kss
-    eval_sentence=['그는 괜찮은 척하려고 애쓰는 것 같았다','그녀의 사랑을 얻기 위해 애썼지만 헛수고였다','용돈을 아껴써라','그는 아내를 많이 아낀다','요즘 공부가 안돼요','한 여자가 내 옆에 앉았다']
-    train_sentence=['가까운 시일 내에 한번, 댁으로 찾아가겠습니다','우리의 승리는 기적에 가까웠다','아이들의 얼굴에는 행복한 미소가 가득했다','헬륨은 공기보다 가볍다','이것은 간단한 문제가 아니다']
-    test_sentence=['안녕하세요, 한동대학교 딥러닝 연구실입니다.', '이 프로젝트가 여러분에게 도움이 되었으면 좋겠습니다.', '시간이 촉박해요','이런, 큰일 났어','좀 더 먹지 그래?','제가 뭘 잘못했죠?','더 이상 묻지마']
+    short_sentence=['안녕하세요, 한동대학교 딥러닝 연구실입니다.','이런, 큰일 났어.','제가 뭘 잘못했죠?','더 이상 묻지마.','그렇게 말해주다니 너무 고마워.', '나는 그러려던 게 아니었는데...']
+    long_sentence=["매일 똑같은 나의 하루 속에 가끔은 내게 선물이 돼줄 그런 사람이 있었으면 해. 달이 예쁘다고 무슨 일은 없었냐고 물어봐줄 그런 사람 말야. 그리고 그런 사람이 너였으면 해.",
+                   "나 스무살 적에 하루를 견디고 불안한 잠자리에 누울 때면 '내일 뭐하지?' 걱정을 했어. 눈을 감아도 통 잠은 안오고 가슴은 답답할 때 난 왜 안되는지를 되뇌었어. 그러던 어느 날 내 맘에 찾아온 작지만 놀라운 깨달음이 내일 뭘 할지 꿈꾸게 했지. 사실 한 번도 미친 듯이 그렇게 달려든 적이 없었다는 것을 생각해 봤고 내 자신을 일으켜 세웠어.",
+                   "한때는 서로의 세상이었던 우리가 이제는 아무 말 없이 스쳐 지나가는 타인이 되어버렸다는 사실이 믿기지 않아, 밤이 깊어질수록 가슴 한편에 남아있는 미련과 후회가 뒤엉켜 나를 잠 못 이루게 하고, 그리움은 끝내 눈물이 되어 조용히 베개를 적셔가지만, 아무리 애써도 되돌릴 수 없는 시간 앞에서 무력함만이 나를 짓누르고 있을 뿐이다.",
+                   "믿었던 만큼 배신감이 날카롭게 가슴을 찢어놓고, 너의 거짓말과 변명들이 내 귀를 울릴 때마다 끓어오르는 분노가 나를 삼키며, 도대체 무엇이 진실이었는지조차 알 수 없게 만들어버린 네가 참으로 증오스럽다."]
     
     g2p=G2p()
-    print('which sentence do you want?')
-    print('1.eval_sentence 2.train_sentence 3.test_sentence 4.create new sentence')
+    print('1.short_sentence 2.long_sentence 3.create new sentence')
 
     mode=input()
     print('you went for mode {}'.format(mode))
-    if mode=='4':
+    if mode=='3':
         print('input sentence')
         sentence = input()
     elif mode=='1':
-        sentence = eval_sentence
+        sentence = random.sample(short_sentence)
     elif mode=='2':
-        sentence = train_sentence
-    elif mode=='3':
-        sentence = test_sentence
+        sentence = random.sample(long_sentence)
     
     print('sentence that will be synthesized: ', sentence)
     print('what speaker do you want? choose between (1, 2, 4, 7, 14, 20, 53, 55, 59, 62)')
@@ -168,10 +166,6 @@ if __name__ == "__main__":
             e_id = hp.emotion_id[emotion]
             break
         print('input proper value')
-    if mode != '4':
-        for s in sentence:
-            text = kor_preprocess(s)
-            synthesize(model, vocoder, text, s, s_id, e_id, dur_pitch_energy_aug, prefix='{}-step_{}-duration_{}-pitch_{}-energy_{}-speaker_{}-emotion_{}'.format(date_format, args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2], speaker, emotion))
-    else:
-        text = kor_preprocess(sentence)
-        synthesize(model, vocoder, text, sentence, s_id, e_id, dur_pitch_energy_aug, prefix='{}-step_{}-duration_{}-pitch_{}-energy_{}-speaker_{}-emotion_{}'.format(date_format, args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2], speaker, emotion))
+
+    text = kor_preprocess(sentence)
+    synthesize(model, vocoder, text, sentence, s_id, e_id, dur_pitch_energy_aug, prefix='{}-step_{}-duration_{}-pitch_{}-energy_{}-speaker_{}-emotion_{}'.format(date_format, args.step, dur_pitch_energy_aug[0], dur_pitch_energy_aug[1], dur_pitch_energy_aug[2], speaker, emotion))
