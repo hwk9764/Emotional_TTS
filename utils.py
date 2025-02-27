@@ -56,7 +56,7 @@ def process_meta(meta_path):
         text = []
         name = []
         for line in f.readlines():
-            n, t = line.strip('\n').split('|')
+            n, t = line.strip('\n').split('|')[:-1]
             name.append(n)
             text.append(t)
         return name, text

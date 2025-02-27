@@ -104,9 +104,9 @@ vocoder_pretrained_model_path = "vocoder/pretrained_models/vocgan_kss_pretrained
 log_offset = 1.
 
 # Save, log and synthesis
-save_step = int(step_per_epoch)*25
-eval_step = int(step_per_epoch)*25
-log_step = int(step_per_epoch)*25
+save_step = int(step_per_epoch)*50
+eval_step = int(step_per_epoch)*100
+log_step = int(step_per_epoch)*100
 clear_Time = 20
 restore_step = 0
 synthesize_step = 193500
