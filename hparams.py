@@ -11,7 +11,6 @@ preprocessed_path = os.path.join("./preprocessed/", dataset)
 checkpoint_path = os.path.join("./ckpt/", dataset)
 eval_path = os.path.join("./eval/", dataset)
 log_path = os.path.join("./log/", dataset)
-log_plus_path = os.path.join("./log_plus/")
 test_path = "./results"
 textgrid_path = "D:/Dataset/emotion/emotion_dataset/TextGrid"
 num_best_model = 3
@@ -45,7 +44,6 @@ energy_max = 150
 
 # GST
 ref_enc_filters = [32, 32, 64, 64, 128, 128]    # ref_enc의 6개 conv layer의 각 output channel의 수
-n_mels = 80
 E = 256 # style token embedding의 차원. text encoder(TTS의 encoder)의 input 차원 수에 맞춤.
 token_num = 10  # 감정 정보를 구하는 데 사용되는 style token의 개수. 논문에선 10개가 적당하다는 결론을 얻었다고 얘기함. style token을 weighted sum해서 style embedding을 구함.
 num_heads = 4
@@ -100,9 +98,23 @@ f_loss_weight = 1.0
 e_loss_weight = 1.0
 
 # Vocoder
-vocoder = "hifigan"#'vocgan'
 vocgan_pretrained_model_path = "vocoder/pretrained_models/vocgan_kss_pretrained_model_epoch_4500(1).pt"
+voc_config = {
+    'mel_channel':n_mel_channels,
+    'mult':256,
+    'ratios':[4, 4, 2, 2, 2, 2],
+    'n_residual_layers':4,
+    'out_channels':1
+}
 hifigan_pretrained_model_path = "vocoder/pretrained_models/g_02500000"
+hifi_config = {
+    'resblock':'1',
+    'resblock_kernel_sizes':[3,7,11],
+    'resblock_dilation_sizes':[[1,3,5], [1,3,5], [1,3,5]],
+    'upsample_rates':[8,8,2,2],
+    'upsample_kernel_sizes':[16,16,4,4],
+    'upsample_initial_channel':512
+}
 
 # Log-scaled duration
 log_offset = 1.

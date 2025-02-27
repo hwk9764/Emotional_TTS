@@ -22,7 +22,7 @@ class GST(nn.Module):
 
 class ReferenceEncoder(nn.Module):
     '''
-    inputs --- [N, Ty/r, n_mels*r]  mels
+    inputs --- [N, Ty/r, n_mel_channels*r]  mels
     outputs --- [N, ref_enc_gru_size]
     '''
 
@@ -39,23 +39,23 @@ class ReferenceEncoder(nn.Module):
         self.convs = nn.ModuleList(convs)
         self.bns = nn.ModuleList([nn.BatchNorm2d(num_features=hp.ref_enc_filters[i]) for i in range(K)])    # 각 conv의 output을 bn에 넣어야 하므로 각 conv output channel size에 맞춰 6개의 bn을 만듦
 
-        out_channels = self.calculate_channels(hp.n_mels, 3, 2, 1, K)
+        out_channels = self.calculate_channels(hp.n_mel_channels, 3, 2, 1, K)
         self.gru = nn.GRU(input_size=hp.ref_enc_filters[-1] * out_channels,
                           hidden_size=hp.E // 2,
                           batch_first=True)
 
     def forward(self, inputs):
         N = inputs.size(0)
-        out = inputs.view(N, 1, -1, hp.n_mels)  # [N, 1, Ty, n_mels]
+        out = inputs.view(N, 1, -1, hp.n_mel_channels)  # [N, 1, Ty, n_mel_channels]
         for conv, bn in zip(self.convs, self.bns):
             out = conv(out)
             out = bn(out)
-            out = F.relu(out)  # [N, 128, Ty//2^K, n_mels//2^K]
+            out = F.relu(out)  # [N, 128, Ty//2^K, n_mel_channels//2^K]
 
-        out = out.transpose(1, 2)  # [N, Ty//2^K, 128, n_mels//2^K]
+        out = out.transpose(1, 2)  # [N, Ty//2^K, 128, n_mel_channels//2^K]
         T = out.size(1)
         N = out.size(0)
-        out = out.contiguous().view(N, T, -1)  # [N, Ty//2^K, 128*n_mels//2^K]
+        out = out.contiguous().view(N, T, -1)  # [N, Ty//2^K, 128*n_mel_channels//2^K]
 
         self.gru.flatten_parameters()
         memory, out = self.gru(out)  # out --- [1, N, E//2]

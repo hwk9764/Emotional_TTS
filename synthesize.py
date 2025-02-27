@@ -56,10 +56,10 @@ def get_FastSpeech2(num):
     model.eval()
     return model
 
-def synthesize(model, vocoder, text, sentence, ref_path, dur_pitch_energy_aug, prefix=''):
+def synthesize(model, vocoder, text, sentence, speaker, emotion, dur_pitch_energy_aug, prefix=''):
     '''arguments
     model : FastSpeech2
-    vocoder : VocGAN
+    vocoder : Vocoder (VocGAN or HiFiGAN)
     text : 원문
     sentence : 원문 g2p
     dur_pitch_energe_aug : duration 가중치
@@ -77,13 +77,13 @@ def synthesize(model, vocoder, text, sentence, ref_path, dur_pitch_energy_aug, p
 
     src_len = torch.from_numpy(np.array([text.shape[1]])).to(device)
     
-    wav, _ = librosa.load(ref_path)
+    # wav, _ = librosa.load(ref_path)
 
-    mel_spectrogram, _ = Audio.tools.get_mel_from_wav(torch.FloatTensor(wav))
-    mel_spectrogram = torch.from_numpy(mel_spectrogram.numpy().astype(np.float32).T).unsqueeze(0)
-    ref_mels = mel_spectrogram[:, 1:, :]
+    # mel_spectrogram, _ = Audio.tools.get_mel_from_wav(torch.FloatTensor(wav))
+    # mel_spectrogram = torch.from_numpy(mel_spectrogram.numpy().astype(np.float32).T).unsqueeze(0)
+    # ref_mels = mel_spectrogram[:, 1:, :]
     
-    mel, mel_postnet, log_duration_output, f0_output, energy_output, _, _, mel_len = model(text, src_len, ref_mels, dur_pitch_energy_aug=dur_pitch_energy_aug, f0_stat=f0_stat, energy_stat=energy_stat)    
+    mel, mel_postnet, log_duration_output, f0_output, energy_output, _, _, mel_len = model(text, src_len, speaker, emotion, dur_pitch_energy_aug=dur_pitch_energy_aug, f0_stat=f0_stat, energy_stat=energy_stat)    
 
     mel_torch = mel.transpose(1, 2).detach()
     mel_postnet_torch = mel_postnet.transpose(1, 2).detach()
@@ -102,7 +102,7 @@ def synthesize(model, vocoder, text, sentence, ref_path, dur_pitch_energy_aug, p
     # griffin-lim으로 생성
     Audio.tools.inv_mel_spec(mel_postnet_torch[0], os.path.join(hp.test_path, '{}_{}_griffin_lim.wav'.format(prefix, sentence)))
     # vocoder로 생성
-    utils.vocoder_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.test_path, '{}_{}_{}.wav'.format(prefix, sentence, hp.vocoder)))
+    utils.vocoder_infer(mel_postnet_torch, vocoder, path=os.path.join(hp.test_path, '{}_{}_{}.wav'.format(prefix, sentence, args.vocoder)))
     # mel spectrogram 그리기
     utils.plot_data([(mel_postnet_torch[0].detach().cpu().numpy(), f0_output, energy_output)], titles=['Synthesized Spectrogram'], filename=os.path.join(hp.test_path, '{}_{}.png'.format(prefix, sentence)))
 
@@ -118,16 +118,19 @@ if __name__ == "__main__":
     # Test
     parser = argparse.ArgumentParser()
     parser.add_argument('--step', type=int, default=30000)
+    parser.add_argument('--vocoder', type=str, default="hifigan")
     args = parser.parse_args()
 
     # duration, pitch, energy를 조절. 입력한 파라미터와 곱해서 크기를 조절 ex) duration 값이 1보다 작으면 더 빨리 말하게 할 수 있음
     dur_pitch_energy_aug = [1.0, 1.0, 1.0]    	# [duration, pitch, energy]
 
     model = get_FastSpeech2(args.step).to(device)
-    if hp.vocoder == 'vocgan':
-        vocoder = utils.get_vocoder(ckpt_path=hp.vocgan_pretrained_model_path)
-    elif hp.vocoder == "hifigan":
-        vocoder = utils.get_vocoder(ckpt_path=hp.hifigan_pretrained_model_path)
+    if args.vocoder == 'vocgan':
+        print('you choosed VocGAN')
+        vocoder = utils.get_vocoder(ckpt_path=hp.vocgan_pretrained_model_path, config=hp.voc_config, vocoder=args.vocoder)
+    elif args.vocoder == "hifigan":
+        print('you choosed HiFi-GAN')
+        vocoder = utils.get_vocoder(ckpt_path=hp.hifigan_pretrained_model_path, config=hp.hifi_config, vocoder=args.vocoder)
  
     #kss
     short_sentence=['안녕하세요, 한동대학교 딥러닝 연구실입니다.','이런, 큰일 났어.','제가 뭘 잘못했죠?','더 이상 묻지마.','그렇게 말해주다니 너무 고마워.', '나는 그러려던 게 아니었는데...']
@@ -145,9 +148,9 @@ if __name__ == "__main__":
         print('input sentence')
         sentence = input()
     elif mode=='1':
-        sentence = random.sample(short_sentence)
+        sentence = random.sample(short_sentence, 1)[0]
     elif mode=='2':
-        sentence = random.sample(long_sentence)
+        sentence = random.sample(long_sentence, 1)[0]
     
     print('sentence that will be synthesized: ', sentence)
     print('what speaker do you want? choose between (1, 2, 4, 7, 14, 20, 53, 55, 59, 62)')
@@ -155,7 +158,7 @@ if __name__ == "__main__":
         speaker=int(input())
         if hp.speaker_id.get(speaker) != None:
             print('you choosed ', speaker)
-            s_id = hp.speaker_id[speaker]
+            s_id = torch.tensor([hp.speaker_id[speaker]]).long().to(device)
             break
         print('input proper value')
     print('what emotion do you want? choose between (분노, 기쁨, 무감정, 슬픔)')
@@ -163,7 +166,7 @@ if __name__ == "__main__":
         emotion=input()
         if hp.emotion_id.get(emotion) != None:
             print('you choosed ', emotion)
-            e_id = hp.emotion_id[emotion]
+            e_id = torch.tensor([hp.emotion_id[emotion]]).long().to(device)
             break
         print('input proper value')
 

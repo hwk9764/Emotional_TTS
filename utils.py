@@ -8,13 +8,13 @@ matplotlib.use("Agg")
 
 from matplotlib import pyplot as plt
 from scipy.io import wavfile
-from vocoder.vocgan_generator import Generator
+from vocoder.vocgan_generator import Generator as vocgan_generator
+from vocoder.hifigan_generator import Generator as hifigan_generator
 import hparams as hp
 import os
 import text
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 
 def get_alignment(tier):    # wav의 말의 시작과 끝을 찾아 return
     sil_phones = ['sil', 'sp', 'spn']
@@ -124,13 +124,16 @@ def get_mask_from_lengths(lengths, max_len=None):
     mask = (ids >= lengths.unsqueeze(1).expand(-1, max_len))
     return mask
 
-def get_vocoder(ckpt_path, n_mel_channels=hp.n_mel_channels, generator_ratio = [4, 4, 2, 2, 2, 2], n_residual_layers=4, mult=256, out_channels=1):
+def get_vocoder(ckpt_path, config, vocoder):
     checkpoint = torch.load(ckpt_path, map_location=torch.device(device))
-    model = Generator(n_mel_channels, n_residual_layers,
-                        ratios=generator_ratio, mult=mult,
-                        out_band=out_channels)
+    if vocoder == "vocgan":
+        model = vocgan_generator(config)
+        ckpt = 'model_g'
+    elif vocoder == "hifigan":
+        model = hifigan_generator(config)
+        ckpt = 'generator'
 
-    model.load_state_dict(checkpoint['model_g'])
+    model.load_state_dict(checkpoint[ckpt])
     model.to(device).eval()
 
     return model

@@ -48,13 +48,17 @@ class ResStack(nn.Module):
 
 # Modified VocGAN
 class Generator(nn.Module):
-    def __init__(self, mel_channel, n_residual_layers, ratios=[4, 4, 2, 2, 2, 2], mult=256, out_band=1):
+    def __init__(self, hp):
         super(Generator, self).__init__()
-        self.mel_channel = mel_channel
-
+        self.mel_channel = hp['mel_channel']
+        mult = hp['mult']
+        ratios = hp['ratios']
+        n_residual_layers = hp['n_residual_layers']
+        out_channels = hp['out_channels']
+        
         self.start = nn.Sequential(
             nn.ReflectionPad1d(3),
-            nn.utils.weight_norm(nn.Conv1d(mel_channel, mult * 2, kernel_size=7, stride=1))
+            nn.utils.weight_norm(nn.Conv1d(self.mel_channel, mult * 2, kernel_size=7, stride=1))
         )
         r = ratios[0]
         self.upsample_1 = nn.Sequential(
@@ -90,7 +94,7 @@ class Generator(nn.Module):
                                  )
         )
 
-        self.skip_upsample_1 = nn.utils.weight_norm(nn.ConvTranspose1d(mel_channel, mult,
+        self.skip_upsample_1 = nn.utils.weight_norm(nn.ConvTranspose1d(self.mel_channel, mult,
                                                                        kernel_size=64, stride=32,
                                                                        padding=16,
                                                                        output_padding=0)
@@ -110,7 +114,7 @@ class Generator(nn.Module):
                                  )
         )
 
-        self.skip_upsample_2 = nn.utils.weight_norm(nn.ConvTranspose1d(mel_channel, mult,
+        self.skip_upsample_2 = nn.utils.weight_norm(nn.ConvTranspose1d(self.mel_channel, mult,
                                                                        kernel_size=128, stride=64,
                                                                        padding=32,
                                                                        output_padding=0)
@@ -129,7 +133,7 @@ class Generator(nn.Module):
                                  )
         )
 
-        self.skip_upsample_3 = nn.utils.weight_norm(nn.ConvTranspose1d(mel_channel, mult,
+        self.skip_upsample_3 = nn.utils.weight_norm(nn.ConvTranspose1d(self.mel_channel, mult,
                                                                        kernel_size=256, stride=128,
                                                                        padding=64,
                                                                        output_padding=0)
@@ -148,7 +152,7 @@ class Generator(nn.Module):
                                  )
         )
 
-        self.skip_upsample_4 = nn.utils.weight_norm(nn.ConvTranspose1d(mel_channel, mult,
+        self.skip_upsample_4 = nn.utils.weight_norm(nn.ConvTranspose1d(self.mel_channel, mult,
                                                                        kernel_size=512, stride=256,
                                                                        padding=128,
                                                                        output_padding=0)
@@ -158,7 +162,7 @@ class Generator(nn.Module):
         self.out = nn.Sequential(
             nn.LeakyReLU(0.2),
             nn.ReflectionPad1d(3),
-            nn.utils.weight_norm(nn.Conv1d(mult, out_band, kernel_size=7, stride=1)),
+            nn.utils.weight_norm(nn.Conv1d(mult, out_channels, kernel_size=7, stride=1)),
             nn.Tanh(),
         )
         self.apply(weights_init)
