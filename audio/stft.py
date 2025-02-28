@@ -36,8 +36,8 @@ class STFT(torch.nn.Module):
         
         # fourier_basis 설명
         # mel filter bank처럼 여러 개의 filter가 모여 있는 집합체 (아직은 window가 아님. 굳이 따지자면 rect함수)
-        # STFT를 할 때 sliding window를 하는 게 아니라 filter들과 원 신호를 곱해서 합치면 sliding window로 STFT한 것과 같은 결과가 나옴
-        # 그러니까 병렬 처리한다고 생각하면 됨 
+        # STFT를 할 때 sliding window를 하는 게 아니라 filter들과 원 신호를 곱해서 합치면 sliding window로 STFT한 것과 같은 결과가 나옴 => ★이를 conv layer로 구현★
+        # 그러니까 병렬 처리한다고 생각하면 됨
         # FFT 결과는 복소수로 이루어져있는데 Convolution을 통과시키기 위해서는 실수부와 허수부를 따로 계산해야 하므로 나눠줌
         # 분리하여 vstack으로 쌓은 후 Convolution을 하면 실수부끼리, 허수부끼리 연산이 된다. (∵ 1d conv라서)
         fourier_basis = np.vstack([np.real(fourier_basis[:cutoff, :]),
@@ -47,7 +47,7 @@ class STFT(torch.nn.Module):
         
         # inverse_basis 설명
         # inverse FFT를 위한 filter의 집합체
-        # fourier_basis를 inverse FFT하여 구하하
+        # fourier_basis를 inverse FFT하여 구함
         # STFT 계산 시 스케일링 효과가 발생하기 때문에 inverse STFT시 이를 보정함
         # scale은 filter_length / hop length로 설정된다.
         # np.linalg.pinv는 역행렬을 구하는 건데 이게 바로 inverse STFT하는 것것
@@ -85,6 +85,7 @@ class STFT(torch.nn.Module):
             mode='reflect')
         input_data = input_data.squeeze(1)
 
+        # conv1d로 최적의 STFT를 학습
         forward_transform = F.conv1d(
             input_data.to(self.device),
             self.forward_basis.to(self.device),
