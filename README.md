@@ -1,5 +1,4 @@
-# Korean FastSpeech 2 - Pytorch Implementation
-
+# Korean Emotional TTS
 # Introduction
 
 최근 딥러닝 기반 음성합성 기술이 발전하며, 자기회귀적 모델의 느린 음성 합성 속도를 개선하기 위해 비자기회귀적 음성합성 모델이 제안되었습니다. <br>
