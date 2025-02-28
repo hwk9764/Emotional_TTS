@@ -46,7 +46,7 @@ data 전처리를 위해 위의 커맨드를 입력해 주세요. 전처리 된 
 
     
 # Train
-모델 학습 전에, kss dataset에 대해 사전학습된 VocGAN(neural vocoder) [다운로드](https://drive.google.com/file/d/1GxaLlTrEhq0aXFvd_X1f4b-ev7-FH8RB/view?usp=sharing)과 HiFi-GAN [다운로드](https://drive.google.com/drive/folders/1-eEYTB5Av9jNql0WGBlRoi-WH2J7bp5Y)하여 ``vocoder/pretrained_models/`` 경로에 위치시킵니다.
+모델 학습 전에, kss dataset에 대해 사전학습된 [VocGAN](https://drive.google.com/file/d/1GxaLlTrEhq0aXFvd_X1f4b-ev7-FH8RB/view?usp=sharing) 또는 [HiFi-GAN](https://drive.google.com/drive/folders/1-eEYTB5Av9jNql0WGBlRoi-WH2J7bp5Y)을 다운로드하여 ``vocoder/pretrained_models/`` 경로에 위치시킵니다.
 
 다음으로, 아래의 커맨드를 입력하여 모델 학습을 수행합니다.
 ```
@@ -57,7 +57,7 @@ python train.py
 # Synthesis
 학습된 파라미터를 기반으로 음성을 생성하는 명령어는 다음과 같습니다. 
 ```
-python synthesis.py --step 500000
+python synthesis.py --step 163800 --vocoder hifigan
 ```
 합성된 음성은  ```results/``` directory에서 확인하실 수 있습니다.
 
@@ -78,7 +78,11 @@ tensorboard log들은 ```log/hp.dataset/``` directory에 저장됩니다. 그러
 # References
 - [FastSpeech 2: Fast and High-Quality End-to-End Text to Speech](https://arxiv.org/abs/2006.04558), Y. Ren, *et al*.
 - [FastSpeech: Fast, Robust and Controllable Text to Speech](https://arxiv.org/abs/1905.09263), Y. Ren, *et al*.
+- [VocGAN: A High-Fidelity Real-time Vocoder with a Hierarchically-nested Adversarial Network](https://arxiv.org/abs/2007.15256), J. Yang, *et al*.
+- [HiFi-GAN: Generative Adversarial Networks for Efficient and High Fidelity Speech Synthesis](https://arxiv.org/abs/2010.05646), J. Kong, *et al*.
 - [ming024's FastSpeech2 impelmentation](https://github.com/ming024/FastSpeech2)
+- [HGU-DLLAB's FastSpeech2](https://github.com/HGU-DLLAB/Korean-FastSpeech2-Pytorch?tab=readme-ov-file)
+- [JH-lee95's FastSpeech2](https://github.com/JH-lee95/Fastspeech2-Korean?tab=readme-ov-file)
+- [keonlee9420](https://github.com/keonlee9420/Expressive-FastSpeech2)
 - [rishikksh20's VocGAN implementation](https://github.com/rishikksh20/VocGAN)
-- [HGU-DLLAB](https://github.com/HGU-DLLAB/Korean-FastSpeech2-Pytorch?tab=readme-ov-file)
-- [JH-lee95](https://github.com/JH-lee95/Fastspeech2-Korean?tab=readme-ov-file)
+- [jik876's HiFi-GAN implementation](https://github.com/jik876/hifi-gan)
