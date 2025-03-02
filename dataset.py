@@ -65,47 +65,6 @@ class Dataset(Dataset):
                   "speaker_id":s,
                   "emotion_id":e}
         return sample
-
-
-    '''def reprocess(self, batch, cut_list):
-        ids = [batch[ind]["id"] for ind in cut_list]
-        texts = [batch[ind]["text"] for ind in cut_list]
-        mel_targets = [standard_norm(batch[ind]["mel_target"], self.mean_mel, self.std_mel, is_mel=True) for ind in cut_list]
-        Ds = [batch[ind]["D"] for ind in cut_list]
-        f0s = [standard_norm(batch[ind]["f0"], self.mean_f0, self.std_f0) for ind in cut_list]
-        energies = [standard_norm(batch[ind]["energy"], self.mean_energy, self.std_energy) for ind in cut_list]
-        for text, D, id_ in zip(texts, Ds, ids):
-            if len(text) != len(D):
-                print('the dimension of text and duration should be the same')
-                print(f"{id_}'s text: ",sequence_to_text(text))
-                print('len(text), len(D) : ', len(text), len(D))
-
-        length_text = np.array(list())
-        for text in texts:
-            length_text = np.append(length_text, text.shape[0])
-
-        length_mel = np.array(list())
-        for mel in mel_targets:
-            length_mel = np.append(length_mel, mel.shape[0])
-        
-        texts = pad_1D(texts)
-        Ds = pad_1D(Ds)
-        mel_targets = pad_2D(mel_targets)
-        f0s = pad_1D(f0s)
-        energies = pad_1D(energies)
-        log_Ds = np.log(Ds + hparams.log_offset)
-
-        out = {"id": ids,
-               "text": texts,
-               "mel_target": mel_targets,
-               "D": Ds,
-               "log_D": log_Ds,
-               "f0": f0s,
-               "energy": energies,
-               "src_len": length_text,
-               "mel_len": length_mel}
-        
-        return out'''
     
     def reprocess(self, batchs):
         ids = [batch["id"] for batch in batchs]
