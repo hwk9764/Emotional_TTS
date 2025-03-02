@@ -117,36 +117,6 @@ class Dataset(Dataset):
     # train.py에 DataLoader에서 collate_fn로 쓸 메소드의 이름만 지정해주면, 데이터셋을 생성하면서
     # 알아서 collate_fn에 batch를 입력으로 넣어 후처리함.
     # https://blog.naver.com/johnny9696/222950922052
-    '''def collate_fn(self, batch):
-        # Filter out None elements from the batch
-        batch = [item for item in batch if item is not None]
-        # Check if the batch is empty after filtering
-        if not batch:
-            return []
-
-        len_arr = np.array([d["text"].shape[0] for d in batch])
-        index_arr = np.argsort(-len_arr)    # -len_arr를 오름차순으로 정렬했을 때 원소값이 아니라 원소의 현재 index로 나타냄.
-        # ------------------------
-        # 데이터셋을 batch size * 총 batch로 분할하는 게 아니라 이중 batch 구조로 만들어서 한 batch 안에 다른 batch가 들어있는 upper batch가 총 batch수만큼 있는 loader를 만듦
-        # 일반적으로 전체 데이터수가 2560개일 때 batch_size가 16이면 총 batch수가 160개인데 여기서는 한 batch 안에 16*16개의 데이터가 들어가고,
-        # 그 batch 안에 있는 sub-batch가 16개의 데이터를 가진다. 그리고 그 sub-batch가 16개 모이면 하나의 batch가 되도록 구성한다.
-        # 이렇게 구성하는 이유는???????
-        batchsize = len(batch)
-        real_batchsize = int(math.sqrt(batchsize))
-
-        cut_list = list()
-        for i in range(real_batchsize):
-            if self.sort:
-                cut_list.append(index_arr[i*real_batchsize:(i+1)*real_batchsize])
-            else:
-                cut_list.append(np.arange(i*real_batchsize, (i+1)*real_batchsize))
-        # ------------------------
-        output = list()
-        for i in range(real_batchsize):
-            output.append(self.reprocess(batch, cut_list[i]))
-
-        return output'''
-    
     
     def collate_fn(self, batch):
         # Filter out None elements from the batch
